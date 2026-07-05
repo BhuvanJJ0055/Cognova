@@ -1,0 +1,4 @@
+time,message,mood,compound_score,intent,reply
+2026-07-03T17:28:27,"This product is completely broken, I am so angry!",upset,-0.837,complaint,Sorry to hear that - that's not the experience we want you to have. Could you send me the order number so I can dig in?
+2026-07-03T17:28:27,"Hi, where is my order?",calm,0.0,order_tracking,Sure thing - what's the order number?
+2026-07-03T17:28:27,"Thank you so much, this made my day!",happy,0.42,compliment,"That's great to hear, thanks for saying so!"

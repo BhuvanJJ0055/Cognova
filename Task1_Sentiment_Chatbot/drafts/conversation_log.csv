@@ -1,0 +1,5 @@
+timestamp,user_input,detected_sentiment,bot_response
+2026-07-05T21:10:00.123456,Hello there! I'm happy to talk to you.,positive,I'm glad you're happy! Let me know how else I can help.
+2026-07-05T21:11:05.654321,This app is so bad and I hate it.,negative,I'm sorry to hear that. I want to help make things better.
+2026-07-05T21:12:15.987654,What is the weather like today?,neutral,Okay, got it. What else would you like to discuss?
+2026-07-05T21:13:30.111222,It is not sad at all, actually I feel fine.,negative,I'm sorry to hear that. I want to help make things better.
