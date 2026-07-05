@@ -2,3 +2,9 @@ time,message,mood,compound_score,intent,reply
 2026-07-03T17:28:27,"This product is completely broken, I am so angry!",upset,-0.837,complaint,Sorry to hear that - that's not the experience we want you to have. Could you send me the order number so I can dig in?
 2026-07-03T17:28:27,"Hi, where is my order?",calm,0.0,order_tracking,Sure thing - what's the order number?
 2026-07-03T17:28:27,"Thank you so much, this made my day!",happy,0.42,compliment,"That's great to hear, thanks for saying so!"
+2026-07-05T23:22:00,"""This device is broken, I am so angry!""",upset,-0.824,complaint,Sorry to hear that - that's not the experience we want you to have. Could you send me the order number so I can dig in?
+2026-07-05T23:22:24,9090,calm,0.0,other,Thanks for the message - can you give me a bit more detail?
+2026-07-05T23:22:31,ok,calm,0.296,other,Thanks for the message - can you give me a bit more detail?
+2026-07-05T23:22:44,the item broked,calm,0.0,other,Thanks for the message - can you give me a bit more detail?
+2026-07-05T23:23:13,"""Thank you, you did a great job!""",happy,0.784,compliment,"That's great to hear, thanks for saying so!"
+2026-07-05T23:23:30,"""Where is my order?""",calm,0.0,order_tracking,Sure thing - what's the order number?
