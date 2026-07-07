@@ -12,9 +12,10 @@ import pandas as pd
 from sklearn.model_selection import train_test_split
 from sklearn.feature_extraction.text import TfidfVectorizer
 from sklearn.linear_model import LogisticRegression
-from sklearn.pipeline import Pipeline
+from sklearn.pipeline import Pipeline, FeatureUnion
 from sklearn.metrics import classification_report, accuracy_score
 import joblib
+from sentiment_features import VaderFeatureExtractor
 
 # Setup paths relative to script location
 SCRIPT_DIR = os.path.dirname(os.path.abspath(__file__))
@@ -51,17 +52,19 @@ def train_model():
     print(f"Test set size: {len(X_test)}")
     print("-" * 60)
 
-    # 3. Create Pipeline: Feature Extraction (TF-IDF) + Classifier (Logistic Regression)
-    # We use a simple ngram range (1, 2) to capture word combinations (e.g. "not happy")
+    # 3. Create Pipeline: Hybrid Features (TF-IDF + VADER Sentiment) + Classifier (Logistic Regression)
     pipeline = Pipeline([
-        ('tfidf', TfidfVectorizer(
-            ngram_range=(1, 2),
-            stop_words=None,
-            lowercase=True,
-            sublinear_tf=True
-        )),
+        ('features', FeatureUnion([
+            ('tfidf', TfidfVectorizer(
+                ngram_range=(1, 1),
+                stop_words=None,
+                lowercase=True,
+                sublinear_tf=True
+            )),
+            ('vader', VaderFeatureExtractor())
+        ])),
         ('clf', LogisticRegression(
-            C=10.0,
+            C=1.0,
             class_weight='balanced',
             random_state=42
         ))

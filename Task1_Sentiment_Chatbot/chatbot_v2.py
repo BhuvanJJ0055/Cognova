@@ -25,6 +25,7 @@ from datetime import datetime
 import joblib
 
 from vaderSentiment.vaderSentiment import SentimentIntensityAnalyzer
+from sentiment_features import VaderFeatureExtractor
 
 LOG_PATH = os.path.join(os.path.dirname(__file__), "chat_history.csv")
 
@@ -135,7 +136,7 @@ def append_log(message, mood, compound, intent, reply):
 class SupportChatbot:
     """Ties scoring + intent tagging + reply selection together."""
 
-    def __init__(self, model_type="vader"):
+    def __init__(self, model_type="ml"):
         self.model_type = model_type.lower()
         self.scorer = SentimentIntensityAnalyzer()
         self.ml_pipeline = None
@@ -192,7 +193,7 @@ if __name__ == "__main__":
     parser.add_argument(
         "--model",
         type=str,
-        default="vader",
+        default="ml",
         choices=["vader", "ml"],
         help="Sentiment classification model to use (vader or ml)"
     )

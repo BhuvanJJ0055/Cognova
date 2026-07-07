@@ -20,6 +20,7 @@ from sklearn.model_selection import train_test_split
 from sklearn.metrics import classification_report, accuracy_score, confusion_matrix
 from vaderSentiment.vaderSentiment import SentimentIntensityAnalyzer
 from chatbot_v2 import score_mood_vader
+from sentiment_features import VaderFeatureExtractor
 
 # Setup paths relative to script location
 SCRIPT_DIR = os.path.dirname(os.path.abspath(__file__))

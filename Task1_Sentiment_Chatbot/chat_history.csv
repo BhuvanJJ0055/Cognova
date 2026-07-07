@@ -13,3 +13,9 @@ time,message,mood,compound_score,intent,reply
 2026-07-07T10:50:41,the buttons are not correcltly working,calm,0.0,other,Thanks for the message - can you give me a bit more detail?
 2026-07-07T10:51:19,when I press the button i doesnt show any operatoon,calm,0.0,other,Thanks for the message - can you give me a bit more detail?
 2026-07-07T10:51:27,thats is exit,calm,0.0,other,Thanks for the message - can you give me a bit more detail?
+2026-07-07T12:32:07,hii,calm,0.0,greeting,Hey! What can I help you with?
+2026-07-07T12:32:16,fuck uhh,upset,-0.542,other,Sounds like this hasn't gone well. Tell me more and I'll try to fix it.
+2026-07-07T12:32:40,iam very happy,happy,0.612,other,Glad things are going smoothly! What can I help with today?
+2026-07-07T12:32:49,u idiot,upset,-0.511,other,Sounds like this hasn't gone well. Tell me more and I'll try to fix it.
+2026-07-07T12:56:01,"I love this product, thank you!",happy,0.79,compliment,Appreciate the kind words - anything else you need help with?
+2026-07-07T12:56:18,"I love this product, thank you!",happy,1.0,compliment,Appreciate the kind words - anything else you need help with?
