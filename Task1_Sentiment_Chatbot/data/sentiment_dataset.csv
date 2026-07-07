@@ -1,0 +1,91 @@
+text,sentiment
+"I absolutely love this, best purchase ever!",happy
+"Thanks a lot, you were super helpful!",happy
+"Great support, really appreciate it!",happy
+"The product exceeded my expectations.",happy
+"Wow, that was fast response time! Perfect service.",happy
+"So glad I chose this brand, works like a charm!",happy
+"Amazing customer support, highly recommended.",happy
+"The checkout process was extremely smooth, thank you.",happy
+"I am very satisfied with the resolution.",happy
+"Thank you for the quick and kind reply.",happy
+"You guys are awesome, keep it up!",happy
+"Excellent service, very friendly support agent.",happy
+"So happy with the discount code, thanks!",happy
+"This new update is fantastic!",happy
+"Everything works perfectly now, thank you so much!",happy
+"Wonderful experience, solved my issue in minutes.",happy
+"Highly impressed by the support team.",happy
+"Thanks for going above and beyond to help me.",happy
+"I love how easy it is to use your app.",happy
+"The delivery was extremely fast, happy customer!",happy
+"This product is wonderful and exceeded what I expected.",happy
+"Your representative was very polite and helpful.",happy
+"Really appreciate the quick turnaround time.",happy
+"This works great, thank you for fixing it so fast.",happy
+"I am delighted with the quality of this item.",happy
+"I had an awesome experience dealing with your support team.",happy
+"This is a great product and customer service was amazing.",happy
+"Super easy to set up and works perfectly.",happy
+"I am very happy with this purchase.",happy
+"Excellent customer service and very prompt response.",happy
+"This is the worst service I have ever experienced.",upset
+"My package arrived damaged and I'm furious.",upset
+"This app keeps crashing, it's so frustrating.",upset
+"Terrible experience, I want a refund immediately.",upset
+"You charged me twice, this is unacceptable.",upset
+"I have been waiting for hours, why is no one replying?!",upset
+"Your customer service is completely useless.",upset
+"My order is missing items and I need them today!",upset
+"I've been trying to log in for days and it keep failing.",upset
+"This product is defective and doesn't work at all.",upset
+"I want my money back, this is a total scam.",upset
+"I am extremely disappointed with the quality.",upset
+"Your system is broken and keeps giving errors.",upset
+"I've sent three emails and got no response, I am so angry!",upset
+"The tracking number you gave me doesn't work, what is going on?",upset
+"This is garbage, I want to cancel my subscription.",upset
+"You promised a delivery today and it hasn't arrived!",upset
+"The UI is awful and I can't find anything.",upset
+"I was promised a refund and I still haven't received it.",upset
+"I am sick and tired of these hidden fees.",upset
+"The service is terrible and I'm extremely frustrated.",upset
+"I bought this yesterday and it is already broken.",upset
+"This is a horrible product, do not buy it.",upset
+"I want to speak with a manager immediately.",upset
+"I am very unhappy with how my issue was handled.",upset
+"Why is your website so slow and buggy? This is awful.",upset
+"The package was delivered to the wrong address, I am furious.",upset
+"Your product description is completely misleading.",upset
+"I am so annoyed with this recurring billing issue.",upset
+"Nothing works and I've wasted my entire afternoon.",upset
+"Can you tell me your working hours?",calm
+"I would like to check my order status.",calm
+"What is your return policy?",calm
+"How do I update my profile picture?",calm
+"Are you open on weekends?",calm
+"Can you help me reset my password?",calm
+"Is there a shipping fee for international orders?",calm
+"I need to change my shipping address.",calm
+"Where can I find the user manual?",calm
+"Can I pay using PayPal?",calm
+"Please send me the invoice for my last purchase.",calm
+"What sizes do you have in stock?",calm
+"How do I unsubscribe from the newsletter?",calm
+"Are the items back in stock yet?",calm
+"I want to register a new account.",calm
+"Please let me know when the support line is active.",calm
+"How long does standard delivery take?",calm
+"Is this product compatible with iOS?",calm
+"Can I order this online and pick it up in store?",calm
+"What payment methods do you accept?",calm
+"How can I contact support via phone?",calm
+"I would like to change my email address.",calm
+"Are there any active discounts right now?",calm
+"I need to cancel my order before it ships.",calm
+"Could you explain how to set up the device?",calm
+"What is the warranty period on this item?",calm
+"Where are your store locations?",calm
+"How do I delete my account?",calm
+"I am writing to inquire about bulk order rates.",calm
+"Can I upgrade my current plan?",calm

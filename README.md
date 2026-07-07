@@ -74,7 +74,7 @@ streamlit run app.py
 
 ## Still to do
 
-- [ ] Get the core sentiment-aware chat loop solid in one language/domain first
+- [x] Get the core sentiment-aware chat loop solid in one language/domain first
 - [ ] Wire up RAG for medical + research domains
 - [ ] Automate the knowledge base refresh
 - [ ] Add image understanding

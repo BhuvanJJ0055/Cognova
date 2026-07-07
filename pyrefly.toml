@@ -1,0 +1,5 @@
+python-interpreter-path = ".venv_new/Scripts/python.exe"
+
+[errors]
+untyped-import = "ignore"
+bad-argument-type = "ignore"

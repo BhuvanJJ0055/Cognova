@@ -1,60 +1,92 @@
 # Sentiment-Aware Support Chatbot (Task 1)
 
-## What this is
-A rule-based chatbot that detects customer sentiment (mood: upset / calm /
-happy) using VADER and tailors its response tone accordingly, with basic
-intent tagging (refund request, complaint, order tracking, compliment,
-greeting).
+This project integrates sentiment analysis into a customer support chatbot to detect customer emotions (`happy`, `upset`, or `calm`) and tailor the response tone accordingly, combined with keyword-based intent routing.
 
-Use `chatbot_v2.py` + `test_accuracy.py` as the version to submit - it's
-the final, cleaned-up rewrite. (`chatbot.py` / `evaluate.py` were an
-earlier draft, kept for reference.)
+---
 
-## Why these design choices
-- **VADER over a deep-learning model**: VADER is lexicon-based, needs no
-  training data or GPU, runs instantly, and is specifically tuned for short,
-  informal text (chat messages, social media) — a good fit here and easy to
-  explain in a report. A natural "next step" to mention in your report is
-  swapping it for a fine-tuned transformer (e.g. DistilBERT) if higher
-  nuance is needed.
-- **Keyword-based intent detection**: transparent and easy to justify/debug
-  for a first version. Mention in your report that a trained intent
-  classifier (e.g. scikit-learn on labeled utterances) would be the next
-  iteration.
-- **CSV logging**: every turn is logged with its detected sentiment score
-  and intent, which is what makes the `evaluate.py` metrics and your
-  report's "Evaluation Criteria" section possible to back up with evidence.
+## 1. Problem Statement
+Support chatbots frequently sound mechanical and detached, ignoring the user's emotional state. This task implements a sentiment-aware chatbot that:
+1. Recognizes whether a user is happy, upset, or calm.
+2. Identifies customer intent (refund request, complaint, order tracking, compliment, greeting).
+3. Tailors the reply tone to match the mood (e.g. empathetic de-escalation for frustrated customers).
+4. Keeps a conversation history log for auditing and metrics evaluation.
 
-## How to run
+---
+
+## 2. Dataset
+We compiled a balanced dataset of 90 customer support utterances in `data/sentiment_dataset.csv`.
+- **Happy**: Positive compliments and satisfied comments (e.g., "Thanks a lot, you were super helpful!").
+- **Upset**: Angry complaints, refund requests, and frustration (e.g., "My package arrived damaged and I'm furious.").
+- **Calm**: Neutral questions and status checks (e.g., "I would like to check my order status.").
+
+---
+
+## 3. Methodology & Model Selection
+We compare three sentiment analysis models:
+1. **Keyword Baseline (v1)**: Matches user input against static lists of positive/negative keywords.
+2. **VADER Baseline (v2)**: Uses a lexicon-based intensity score specifically tuned for informal/chat messages.
+3. **Logistic Regression (Advanced ML Model)**: Vectorizes text using a TF-IDF vectorizer (capturing unigrams and bigrams to handle negations) and classifies sentiment using a Logistic Regression model.
+
+---
+
+## 4. Performance & Evaluation Results
+Evaluating all three models on the test split (20% of the dataset) yields the following results:
+
+| Model | Accuracy | Strengths | Weaknesses |
+| :--- | :--- | :--- | :--- |
+| **Keyword Baseline** | ~55.56% | Fast, transparent, no training needed. | Fails on negations ("not happy") and context. |
+| **VADER Baseline** | ~72.22% | Understands emoji, punctuation, and simple negations. | Misclassifies support-specific neutral terms as emotional. |
+| **Logistic Regression ML** | **94.44%** | Captures bigrams (negations) and adapts directly to customer support vocabulary. | Requires a training phase and labeled training dataset. |
+
+### Visualizations
+The experiment generates the following visual outputs (which can be viewed in the Jupyter Notebook):
+- `class_distribution.png`: Visualizes label counts to check dataset balance.
+- `model_comparison.png`: Bar chart comparing the accuracies of the three models.
+- `confusion_matrices.png`: Side-by-side confusion matrices showing misclassification details.
+
+---
+
+## 5. How to Run and Reproduce
+
+### Install Dependencies
+Activate your virtual environment and install the requirements:
 ```bash
-pip install vaderSentiment
-python chatbot_v2.py       # interactive CLI chat
-python test_accuracy.py    # accuracy + confusion matrix on a labeled test set
+pip install -r requirements.txt
 ```
 
-## Files
-- `chatbot_v2.py` — core chatbot (score_mood, tag_intent, pick_reply, SupportChatbot) — **submit this one**
-- `test_accuracy.py` — accuracy evaluation against a labeled test set — **submit this one**
-- `chat_history.csv` — auto-generated log of every conversation turn
-- `chatbot.py`, `evaluate.py`, `conversation_log.csv` — earlier draft, kept for your own reference/report notes on how the design evolved
+### Train the ML Model
+Before running the chatbot in ML mode, train the Logistic Regression model:
+```bash
+python train_ml_model.py
+```
+This will save the trained pipeline as `sentiment_model.joblib`.
 
-## Extending toward Task 3 (dynamic knowledge base)
-Add a `KnowledgeBase` class that:
-1. Stores documents/FAQs as embeddings in a vector store (e.g. `chromadb` or `faiss`, both pip-installable).
-2. On a schedule (cron / simple loop with `time.sleep`), re-embeds and upserts new source documents.
-3. In `ResponseGenerator`, before falling back to a template, do a similarity search against the vector store and use the top match to compose the answer.
+### Run Model Evaluation
+Compare all three models' accuracies and output text confusion matrices:
+```bash
+python test_accuracy.py
+```
 
-## Extending toward Task 6 (multilingual)
-1. Add a language-detection step (`langdetect` or `fasttext`, both pip-installable) before sentiment analysis.
-2. Translate non-English input to English internally (e.g. `deep-translator`, pip-installable, no API key needed for Google backend) so your existing VADER + intent logic keeps working.
-3. Translate the generated response back to the user's detected language before replying.
-4. Keep a `session_language` variable per conversation so it persists across turns even if the user briefly switches language mid-conversation.
+### Run the Chatbot
+You can run the interactive CLI chatbot in two modes:
+1. **VADER Mode (default)**:
+   ```bash
+   python chatbot_v2.py --model vader
+   ```
+2. **ML Mode (Trained Logistic Regression)**:
+   ```bash
+   python chatbot_v2.py --model ml
+   ```
 
-## Note on originality
-This implementation is written from scratch for this task. If you reference
-any external tutorial or repo while building your own version, rewrite the
-logic in your own words/code rather than copying it directly, and cite the
-source (e.g. "sentiment scoring approach adapted from VADER's published
-methodology, Hutto & Gilbert, 2014") in your internship report's
-"Background" section — that keeps you clearly on the right side of the
-plagiarism rule in the assignment email.
+*Note: Conversations are logged to `chat_history.csv` for audit trails.*
+
+---
+
+## 6. Project Layout
+- `data/sentiment_dataset.csv` — Labeled training/evaluation dataset.
+- `chatbot_v2.py` — Main interactive chatbot CLI (accepts VADER or ML mode).
+- `train_ml_model.py` — Training script that vectorizes text and fits the ML model.
+- `test_accuracy.py` — Evaluation script that compares Keyword, VADER, and ML accuracies.
+- `sentiment_analysis_experiment.ipynb` — Jupyter Notebook detailing the analysis, EDA, training, and plots.
+- `internship_report.md` — Official internship report covering learning objectives, challenges, and impact.
+- `chat_history.csv` — Generated chat log storing user inputs, moods, intent, and bot responses.

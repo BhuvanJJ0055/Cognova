@@ -8,3 +8,8 @@ time,message,mood,compound_score,intent,reply
 2026-07-05T23:22:44,the item broked,calm,0.0,other,Thanks for the message - can you give me a bit more detail?
 2026-07-05T23:23:13,"""Thank you, you did a great job!""",happy,0.784,compliment,"That's great to hear, thanks for saying so!"
 2026-07-05T23:23:30,"""Where is my order?""",calm,0.0,order_tracking,Sure thing - what's the order number?
+2026-07-07T10:49:44,hii,calm,0.0,greeting,Hey! What can I help you with?
+2026-07-07T10:50:10,my tv remote have some problem,upset,-0.402,other,Sounds like this hasn't gone well. Tell me more and I'll try to fix it.
+2026-07-07T10:50:41,the buttons are not correcltly working,calm,0.0,other,Thanks for the message - can you give me a bit more detail?
+2026-07-07T10:51:19,when I press the button i doesnt show any operatoon,calm,0.0,other,Thanks for the message - can you give me a bit more detail?
+2026-07-07T10:51:27,thats is exit,calm,0.0,other,Thanks for the message - can you give me a bit more detail?

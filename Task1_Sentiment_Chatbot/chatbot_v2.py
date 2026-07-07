@@ -20,7 +20,9 @@ Approach I chose:
 import csv
 import os
 import random
+import argparse
 from datetime import datetime
+import joblib
 
 from vaderSentiment.vaderSentiment import SentimentIntensityAnalyzer
 
@@ -81,7 +83,7 @@ FALLBACK_REPLIES = {
 }
 
 
-def score_mood(message, scorer):
+def score_mood_vader(message, scorer):
     """Run VADER on the message and bucket it into upset/calm/happy."""
     result = scorer.polarity_scores(message)
     compound = result["compound"]
@@ -133,21 +135,48 @@ def append_log(message, mood, compound, intent, reply):
 class SupportChatbot:
     """Ties scoring + intent tagging + reply selection together."""
 
-    def __init__(self):
+    def __init__(self, model_type="vader"):
+        self.model_type = model_type.lower()
         self.scorer = SentimentIntensityAnalyzer()
+        self.ml_pipeline = None
+
+        if self.model_type == "ml":
+            model_path = os.path.join(os.path.dirname(__file__), "sentiment_model.joblib")
+            if os.path.exists(model_path):
+                try:
+                    self.ml_pipeline = joblib.load(model_path)
+                    print(f"[Info] Loaded Advanced ML model from {model_path}")
+                except Exception as e:
+                    print(f"[Warning] Failed to load ML model: {e}. Falling back to VADER.")
+                    self.model_type = "vader"
+            else:
+                print(f"[Warning] ML model file {model_path} not found. Run train_ml_model.py first. Falling back to VADER.")
+                self.model_type = "vader"
+
         ensure_log_exists()
 
+    def score_mood(self, message: str):
+        if self.model_type == "ml" and self.ml_pipeline is not None:
+            try:
+                pred = self.ml_pipeline.predict([message])[0]
+                score_map = {"happy": 1.0, "upset": -1.0, "calm": 0.0}
+                return pred, score_map.get(pred, 0.0)
+            except Exception as e:
+                print(f"[Warning] ML inference error: {e}. Falling back to VADER.")
+
+        return score_mood_vader(message, self.scorer)
+
     def reply_to(self, message: str) -> str:
-        mood, compound = score_mood(message, self.scorer)
+        mood, compound = self.score_mood(message)
         intent = tag_intent(message)
         reply = pick_reply(mood, intent)
         append_log(message, mood, compound, intent, reply)
         return reply
 
 
-def chat_loop():
-    bot = SupportChatbot()
-    print("Support bot ready. Type 'quit' to stop.\n")
+def chat_loop(model_type="vader"):
+    bot = SupportChatbot(model_type=model_type)
+    print(f"Support bot ready ({bot.model_type.upper()} model). Type 'quit' to stop.\n")
     while True:
         message = input("You: ").strip()
         if message.lower() in {"quit", "exit"}:
@@ -159,4 +188,13 @@ def chat_loop():
 
 
 if __name__ == "__main__":
-    chat_loop()
+    parser = argparse.ArgumentParser(description="Sentiment-Aware Support Chatbot")
+    parser.add_argument(
+        "--model",
+        type=str,
+        default="vader",
+        choices=["vader", "ml"],
+        help="Sentiment classification model to use (vader or ml)"
+    )
+    args = parser.parse_args()
+    chat_loop(model_type=args.model)
