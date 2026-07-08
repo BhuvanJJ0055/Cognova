@@ -133,16 +133,26 @@ st.markdown("""
         border-left: 4px solid #3182ce;
     }
 </style>
-""", unsafe_allow_value=True)
+""", unsafe_allow_html=True)
 
 # Helper: check dataset existence
-csv_path = DEFAULT_CSV_PATH if os.path.exists(DEFAULT_CSV_PATH) else SAMPLE_CSV_PATH
-has_full_data = os.path.exists(DEFAULT_CSV_PATH)
+csv_candidates = [
+    os.path.join(os.path.dirname(os.path.abspath(__file__)), "Task2_Medical_QA_Chatbot", "data", "medical_qa.csv"),
+    DEFAULT_CSV_PATH,
+    SAMPLE_CSV_PATH
+]
+csv_path = SAMPLE_CSV_PATH
+for path in csv_candidates:
+    if os.path.exists(path):
+        csv_path = path
+        break
+
+has_full_data = os.path.exists(DEFAULT_CSV_PATH) or os.path.exists(os.path.join(os.path.dirname(os.path.abspath(__file__)), "Task2_Medical_QA_Chatbot", "data", "medical_qa.csv"))
 
 # Load database statistics
 df_stats = pd.read_csv(csv_path)
 total_qa_pairs = len(df_stats)
-unique_focus = df_stats["focus"].nunique()
+unique_focus = df_stats["focus"].nunique() if "focus" in df_stats.columns else df_stats["question"].nunique()
 
 # Initialize Task 2 Objects
 @st.cache_resource
@@ -153,12 +163,13 @@ def get_retriever():
 def get_recognizer():
     return MedicalEntityRecognizer(dataset_csv=csv_path)
 
-try:
-    retriever = get_retriever()
-    recognizer = get_recognizer()
-except Exception as e:
-    st.error(f"Error loading medical indexes: {e}")
-    st.stop()
+# Default variables to satisfy static analysis linters
+support_bot = None
+conf_threshold = 0.15
+max_results = 3
+
+retriever = get_retriever()
+recognizer = get_recognizer()
 
 
 # Sidebar Navigation
@@ -236,7 +247,7 @@ st.markdown(f"""
         <h1>Cognova Integrated Assistant</h1>
         <p>Current Module: {app_mode.split(' ', 1)[1]}</p>
     </div>
-""", unsafe_allow_value=True)
+""", unsafe_allow_html=True)
 
 
 # --- RENDER MODULES ---
@@ -253,7 +264,7 @@ if app_mode == "💬 Customer Support Agent":
         placeholder="e.g., My order #5432 has not arrived yet, and I am extremely angry."
     )
     
-    if customer_input:
+    if customer_input and support_bot is not None:
         # Score sentiment and intent
         mood, compound = support_bot.score_mood(customer_input)
         intent = tag_intent(customer_input)
@@ -265,7 +276,7 @@ if app_mode == "💬 Customer Support Agent":
         col1, col2, col3 = st.columns(3)
         with col1:
             mood_style = "mood-happy" if mood == "happy" else ("mood-upset" if mood == "upset" else "mood-calm")
-            st.markdown(f"**Detected Sentiment:** <span class='mood-badge {mood_style}'>{mood}</span>", unsafe_allow_value=True)
+            st.markdown(f"**Detected Sentiment:** <span class='mood-badge {mood_style}'>{mood}</span>", unsafe_allow_html=True)
         with col2:
             st.markdown(f"**Confidence Score:** `{compound:.3f}`")
         with col3:
@@ -280,7 +291,7 @@ if app_mode == "💬 Customer Support Agent":
             <b>Empathetic Response ({support_bot.model_type.upper()} Mode):</b><br>
             {reply}
         </div>
-        """, unsafe_allow_value=True)
+        """, unsafe_allow_html=True)
         
     # Render historic logs
     st.markdown("---")
@@ -323,7 +334,7 @@ else: # Medical Q&A Advisor
                     remember that health issues can be stressful. We recommend talking to a physician if symptoms persist.
                 </p>
             </div>
-            """, unsafe_allow_value=True)
+            """, unsafe_allow_html=True)
         
         # 1. Entity Recognition
         entities = recognizer.extract_entities(med_query)
@@ -346,7 +357,7 @@ else: # Medical Q&A Advisor
             has_e = True
 
         if has_e:
-            st.markdown(f"<div>{disease_html}{symptom_html}{treatment_html}</div>", unsafe_allow_value=True)
+            st.markdown(f"<div>{disease_html}{symptom_html}{treatment_html}</div>", unsafe_allow_html=True)
         else:
             st.markdown("*No standard entities detected in query. Searching retrieval index directly.*")
             
@@ -368,7 +379,7 @@ else: # Medical Q&A Advisor
                     <hr style="margin: 0.5rem 0; border: 0; border-top: 1px solid #edf2f7;">
                     <p style="margin: 0.5rem 0 0 0; color: #2d3748; line-height: 1.6;"><b>Answer:</b> {match['answer']}</p>
                 </div>
-                """, unsafe_allow_value=True)
+                """, unsafe_allow_html=True)
         else:
             st.error(
                 f"No matching medical entries could be retrieved above the similarity threshold of **{conf_threshold}**. "

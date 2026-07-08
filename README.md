@@ -39,47 +39,60 @@ Nothing exotic here — it's mostly about getting these pieces to share one cons
 
 None of this is locked in — swap any piece out as needed.
 
-## Project layout
+## Project Layout
 
 ```
-cognova/
-├── data/              datasets used for retrieval (MedQuAD, arXiv subset, etc.)
-├── ingestion/          scripts that keep the vector store updated
-├── modules/
-│   ├── sentiment.py
-│   ├── language.py
-│   ├── retrieval.py
-│   └── multimodal.py
-├── app.py              Streamlit entry point
-├── requirements.txt
-└── README.md
+Cognova/
+├── Task1_Sentiment_Chatbot/    # Task 1: Sentiment-Aware Customer Support Agent
+│   ├── data/                   # Sentiment training datasets
+│   ├── chatbot_v2.py           # Core logic for VADER & Logistic Regression classifier
+│   ├── test_accuracy.py        # Model validation and metrics
+│   ├── internship_report.md    # Task 1 Internship Report
+│   └── README.md               # Task 1 setup & methodology
+├── Task2_Medical_QA_Chatbot/   # Task 2: MedQuAD-based Medical Advisor
+│   ├── data/                   # MedQuAD datasets & serialized retriever indices
+│   ├── data_loader.py          # Automatic NIH XML corpus downloader & parser
+│   ├── build_index.py          # TF-IDF & Cosine Similarity search engine
+│   ├── entity_recognition.py   # Regex-based medical entity tagging (symptoms, etc.)
+│   ├── data_processor.py       # Data formatting and index build script
+│   ├── test_entities.py        # NER tagger unit assertions
+│   ├── test_pipeline.py        # Semantic retrieval unit assertions
+│   ├── internship_report.md    # Task 2 Internship Report
+│   └── README.md               # Task 2 setup & methodology
+├── app.py                      # Root Streamlit Application (Unified Hub)
+├── requirements.txt            # Root dependencies
+├── pyrefly.toml                # Project settings
+└── README.md                   # This root documentation
 ```
 
-## Running it locally
+## Running it Locally
 
-```bash
-git clone https://github.com/BhuvanJJ0055/Cognova.git
-cd Cognova
-pip install -r requirements.txt
-streamlit run app.py
-```
+1. **Clone the repository:**
+   ```bash
+   git clone https://github.com/BhuvanJJ0055/Cognova.git
+   cd Cognova
+   ```
 
-## Where this could actually be useful
+2. **Install dependencies:**
+   ```bash
+   pip install -r requirements.txt
+   ```
 
-- Support chatbots that don't sound robotic when someone's annoyed
-- A first-pass medical symptom checker (not a replacement for a doctor, obviously)
-- Explaining research papers in plain language, with follow-up questions
-- Support desks handling users who switch languages mid-sentence
-- Troubleshooting bots where a screenshot says more than a paragraph of text
+3. **Initialize the Medical Dataset & Build Indexes:**
+   To prepare the medical indices and run the test suites, execute the processor:
+   ```bash
+   python Task2_Medical_QA_Chatbot/data_processor.py
+   ```
 
-## Still to do
+4. **Launch the Unified Streamlit App:**
+   ```bash
+   streamlit run app.py
+   ```
 
-- [x] Get the core sentiment-aware chat loop solid in one language/domain first
-- [x] Wire up RAG for medical + research domains (MedQuAD indexing and retrieval completed)
-- [ ] Automate the knowledge base refresh
-- [ ] Add image understanding
-- [ ] Handle language switching mid-conversation
-- [ ] Deploy a public demo
+## Internship Reports & Deliverables
+
+* 📄 **Task 1 Report:** [Task1 Internship Report](file:///c:/Users/bhuva/Cognova/Task1_Sentiment_Chatbot/internship_report.md)
+* 📄 **Task 2 Report:** [Task2 Internship Report](file:///c:/Users/bhuva/Cognova/Task2_Medical_QA_Chatbot/internship_report.md)
 
 ## License
 
@@ -88,3 +101,4 @@ MIT — use it, break it, learn from it.
 ## Author
 
 Bhuvan J J
+

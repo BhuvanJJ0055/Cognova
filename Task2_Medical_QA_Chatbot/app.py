@@ -124,7 +124,7 @@ st.markdown("""
         border-radius: 4px;
     }
 </style>
-""", unsafe_allow_value=True)
+""", unsafe_allow_html=True)
 
 
 # Initialize Session State Variables
@@ -132,13 +132,23 @@ if "index_rebuilt" not in st.session_state:
     st.session_state.index_rebuilt = False
 
 # Helper: check dataset existence
-csv_path = DEFAULT_CSV_PATH if os.path.exists(DEFAULT_CSV_PATH) else SAMPLE_CSV_PATH
-has_full_data = os.path.exists(DEFAULT_CSV_PATH)
+csv_candidates = [
+    os.path.join(os.path.dirname(os.path.abspath(__file__)), "data", "medical_qa.csv"),
+    DEFAULT_CSV_PATH,
+    SAMPLE_CSV_PATH
+]
+csv_path = SAMPLE_CSV_PATH
+for path in csv_candidates:
+    if os.path.exists(path):
+        csv_path = path
+        break
+
+has_full_data = os.path.exists(DEFAULT_CSV_PATH) or os.path.exists(os.path.join(os.path.dirname(os.path.abspath(__file__)), "data", "medical_qa.csv"))
 
 # Load database info
 df_stats = pd.read_csv(csv_path)
 total_qa_pairs = len(df_stats)
-unique_focus = df_stats["focus"].nunique()
+unique_focus = df_stats["focus"].nunique() if "focus" in df_stats.columns else df_stats["question"].nunique()
 
 # Initialize Retriever and Entity Recognizer
 @st.cache_resource
@@ -149,12 +159,8 @@ def get_retriever():
 def get_recognizer():
     return MedicalEntityRecognizer(dataset_csv=csv_path)
 
-try:
-    retriever = get_retriever()
-    recognizer = get_recognizer()
-except Exception as e:
-    st.error(f"Error loading indexes: {e}")
-    st.stop()
+retriever = get_retriever()
+recognizer = get_recognizer()
 
 
 # Sidebar layout
@@ -220,7 +226,7 @@ st.markdown("""
         <h1>⚕️ Cognova Medical Q&A Advisor</h1>
         <p>Intelligent, fast semantic question-answering powered by the MedQuAD Dataset</p>
     </div>
-""", unsafe_allow_value=True)
+""", unsafe_allow_html=True)
 
 # Medical Disclaimer Box
 st.warning(
@@ -262,7 +268,7 @@ if user_query:
         has_entities = True
 
     if has_entities:
-        st.markdown(f"<div>{disease_html}{symptom_html}{treatment_html}</div>", unsafe_allow_value=True)
+        st.markdown(f"<div>{disease_html}{symptom_html}{treatment_html}</div>", unsafe_allow_html=True)
     else:
         st.markdown("ℹ️ *No common diseases, symptoms, or treatments detected in query. Performing generic keyword retrieval.*")
 
@@ -286,7 +292,7 @@ if user_query:
                     <hr style="margin: 0.5rem 0; border: 0; border-top: 1px solid #e2e8f0;">
                     <p style="margin: 0.5rem 0 0 0; color: #2D3748; line-height: 1.6;"><b>Answer:</b> {match['answer']}</p>
                 </div>
-                """, unsafe_allow_value=True)
+                """, unsafe_allow_html=True)
     else:
         st.markdown("### ❌ No Matches Found")
         st.error(

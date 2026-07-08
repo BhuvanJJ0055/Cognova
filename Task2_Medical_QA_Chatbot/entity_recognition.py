@@ -67,8 +67,21 @@ class MedicalEntityRecognizer:
         self.treatments = set(STATIC_TREATMENT_LIST)
 
         # Attempt to augment disease list with real MedQuAD focus topics
-        csv_to_use = dataset_csv or (DEFAULT_CSV_PATH if os.path.exists(DEFAULT_CSV_PATH) else SAMPLE_CSV_PATH)
-        if os.path.exists(csv_to_use):
+        csv_to_use = None
+        if not dataset_csv:
+            csv_candidates = [
+                os.path.join(DATA_DIR, "medical_qa.csv"),
+                DEFAULT_CSV_PATH,
+                SAMPLE_CSV_PATH
+            ]
+            for path in csv_candidates:
+                if os.path.exists(path):
+                    csv_to_use = path
+                    break
+        else:
+            csv_to_use = dataset_csv
+
+        if csv_to_use and os.path.exists(csv_to_use):
             try:
                 df = pd.read_csv(csv_to_use)
                 if "focus" in df.columns:

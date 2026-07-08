@@ -42,13 +42,22 @@ class MedicalRetriever:
             self.load_index()
         else:
             print(f"[Warning] Index file {self.index_path} not found. Attempting to build from CSV...")
-            csv_to_use = DEFAULT_CSV_PATH if os.path.exists(DEFAULT_CSV_PATH) else fallback_csv_path
+            csv_candidates = [
+                os.path.join(DATA_DIR, "medical_qa.csv"),
+                DEFAULT_CSV_PATH,
+                fallback_csv_path
+            ]
+            csv_to_use = None
+            for path in csv_candidates:
+                if os.path.exists(path):
+                    csv_to_use = path
+                    break
             
-            if os.path.exists(csv_to_use):
+            if csv_to_use:
                 self.build_and_save_index(csv_to_use)
             else:
                 raise FileNotFoundError(
-                    f"No index file found at {self.index_path} and no CSV found at {csv_to_use} to rebuild."
+                    f"No index file found at {self.index_path} and no CSV found to rebuild."
                 )
 
     def build_and_save_index(self, csv_path):
@@ -60,9 +69,16 @@ class MedicalRetriever:
         df = df.dropna(subset=["question", "answer"])
         df["question"] = df["question"].astype(str)
         df["answer"] = df["answer"].astype(str)
+        
+        # Populate missing columns dynamically if they do not exist
+        if "focus" not in df.columns:
+            df["focus"] = "General"
+        if "question_type" not in df.columns:
+            df["question_type"] = "general"
+            
         df["focus"] = df["focus"].fillna("General").astype(str)
         df["question_type"] = df["question_type"].fillna("general").astype(str)
-
+        
         # Initialize TF-IDF Vectorizer
         # We use unigrams and bigrams, lowercase, and english stop words.
         self.vectorizer = TfidfVectorizer(
