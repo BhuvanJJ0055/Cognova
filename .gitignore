@@ -216,3 +216,16 @@ __marimo__/
 
 # Streamlit
 .streamlit/secrets.toml
+
+# Virtual environment (custom)
+.venv_new/
+
+# Large dataset files and generated retrieval indices
+Task2_Medical_QA_Chatbot/data/medical_qa.csv
+Task2_Medical_QA_Chatbot/data/medquad_qa.csv
+Task2_Medical_QA_Chatbot/data/retriever_index.joblib
+Task2_Medical_QA_Chatbot/data/test_retriever_index.joblib
+
+# Local chat history log files
+Task1_Sentiment_Chatbot/chat_history.csv
+chat_history.csv

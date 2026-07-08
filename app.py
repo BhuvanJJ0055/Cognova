@@ -391,7 +391,7 @@ else: # Medical Q&A Advisor
     st.markdown("### 💡 Recommended Searches:")
     cols = st.columns(3)
     with cols[0]:
-        if st.button("What are the symptoms of asthma?"): st.info("Type this into the box above!")
+        if st.button("What is Asthma?"): st.info("Type this into the box above!")
     with cols[1]:
         if st.button("How is depression treated?"): st.info("Type this into the box above!")
     with cols[2]:

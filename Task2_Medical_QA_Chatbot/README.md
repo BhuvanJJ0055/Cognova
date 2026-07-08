@@ -90,4 +90,4 @@ Matches keywords inside the cleaned query. To prevent false positives:
 
 ## 6. Verification & Test Evidence
 - **test_entities.py**: Correctly recognizes "lupus" (disease), "joint pain", "fever" (symptoms), and "prednisone" (treatment) on test queries. Safely handles subword boundaries.
-- **test_pipeline.py**: Verifies that searching "What are the symptoms of Asthma?" returns the correct record with an exact match and retrieves the correct answer.
+- **test_pipeline.py**: Verifies that searching "What is Asthma?" returns the correct record with an exact match and retrieves the correct answer.

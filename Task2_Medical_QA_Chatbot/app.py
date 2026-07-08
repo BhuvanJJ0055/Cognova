@@ -305,7 +305,7 @@ st.markdown("---")
 st.markdown("### 💡 Try these sample queries:")
 cols = st.columns(3)
 with cols[0]:
-    if st.button("What are the symptoms of Asthma?"):
+    if st.button("What is Asthma?"):
         st.info("Paste this into the box above!")
 with cols[1]:
     if st.button("How is Lupus treated?"):

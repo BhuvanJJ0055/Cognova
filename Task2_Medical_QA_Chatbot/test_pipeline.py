@@ -6,7 +6,7 @@ Automated test script to verify retrieval accuracy and pipeline integrity.
 It:
 1. Instantiates the MedicalRetriever using the sample Q&A CSV.
 2. Triggers indexing dynamically.
-3. Tests retrieval queries ("What are the symptoms of asthma?" and "How is diabetes treated?")
+3. Tests retrieval queries ("What is Asthma?" and "How is diabetes treated?")
 4. Asserts that the top retrieved focus and similarity scores are within acceptable bounds.
 """
 
@@ -33,7 +33,7 @@ def test_retrieval_flow():
         retriever = MedicalRetriever(index_path=temp_index, fallback_csv_path=sample_csv)
         
         # Test Query 1: Asthma symptoms
-        query_1 = "What are the symptoms of Asthma?"
+        query_1 = "What is Asthma?"
         print(f"\n[Test] Querying: '{query_1}'")
         hits_1 = retriever.retrieve(query_1, threshold=0.15, top_k=1)
         

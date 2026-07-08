@@ -54,7 +54,7 @@ The key technical skills developed and applied during this task include:
 
 ## 6. Feedback and Evidence
 The implemented components were verified and achieved excellent performance:
-- **Retrieval Accuracy**: Testing with specific queries (e.g. "What are the symptoms of asthma?") successfully returned the exact matched entry with a similarity of `1.000` (100% confidence). Partial searches like "how to treat diabetes" matched the correct diabetes treatment card with high similarity (~0.75+).
+- **Retrieval Accuracy**: Testing with specific queries (e.g. "What is Asthma?") successfully returned the exact matched entry with a similarity of `1.000` (100% confidence). Partial searches like "how to treat diabetes" matched the correct diabetes treatment card with high similarity (~0.75+).
 - **Entity Tagging Precision**: The boundary test asserted that subwords were ignored (e.g., "pain" inside "painting" was correctly skipped, while "headache" was tagged as a symptom). Multi-word disease names like "celiac disease" were successfully extracted as a single disease tag.
 - **Cross-Feature Integration**: When testing queries like "I am in horrible pain and cannot breathe, does influenza cause fever?", the unified app successfully:
   1. Detected "upset" sentiment and displayed a warm, empathetic comforting note.

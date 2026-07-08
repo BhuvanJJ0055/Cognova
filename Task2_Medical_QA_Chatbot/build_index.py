@@ -31,7 +31,7 @@ INDEX_SAVE_PATH = os.path.join(DATA_DIR, "retriever_index.joblib")
 class MedicalRetriever:
     """Manages text representation, index loading/saving, and question retrieval."""
 
-    def __init__(self, index_path=INDEX_SAVE_PATH, fallback_csv_path=SAMPLE_CSV_PATH):
+    def __init__(self, index_path=INDEX_SAVE_PATH, fallback_csv_path=None):
         self.index_path = index_path
         self.vectorizer = None
         self.tfidf_matrix = None
@@ -42,11 +42,15 @@ class MedicalRetriever:
             self.load_index()
         else:
             print(f"[Warning] Index file {self.index_path} not found. Attempting to build from CSV...")
-            csv_candidates = [
+            csv_candidates = []
+            if fallback_csv_path is not None:
+                csv_candidates.append(fallback_csv_path)
+            csv_candidates.extend([
                 os.path.join(DATA_DIR, "medical_qa.csv"),
                 DEFAULT_CSV_PATH,
-                fallback_csv_path
-            ]
+                SAMPLE_CSV_PATH
+            ])
+            
             csv_to_use = None
             for path in csv_candidates:
                 if os.path.exists(path):
