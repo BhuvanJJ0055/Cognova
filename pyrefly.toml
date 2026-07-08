@@ -1,4 +1,5 @@
 python-interpreter-path = ".venv_new/Scripts/python.exe"
+search-path = ["Task1_Sentiment_Chatbot"]
 
 [errors]
 untyped-import = "ignore"

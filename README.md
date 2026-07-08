@@ -75,7 +75,7 @@ streamlit run app.py
 ## Still to do
 
 - [x] Get the core sentiment-aware chat loop solid in one language/domain first
-- [ ] Wire up RAG for medical + research domains
+- [x] Wire up RAG for medical + research domains (MedQuAD indexing and retrieval completed)
 - [ ] Automate the knowledge base refresh
 - [ ] Add image understanding
 - [ ] Handle language switching mid-conversation
