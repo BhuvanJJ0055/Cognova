@@ -55,6 +55,15 @@ class KnowledgeUpdater:
         os.makedirs(self.pending_dir, exist_ok=True)
         os.makedirs(self.processed_dir, exist_ok=True)
 
+        # Backup pristine sample CSV if it exists and hasn't been backed up yet
+        base_sample_path = os.path.join(self.data_dir, "sample_medquad_qa.csv")
+        pristine_path = os.path.join(self.data_dir, "pristine_sample_medquad_qa.csv")
+        if os.path.exists(base_sample_path) and not os.path.exists(pristine_path):
+            try:
+                shutil.copy(base_sample_path, pristine_path)
+            except Exception as e:
+                print(f"[Warning] Failed to backup pristine sample: {e}")
+
         # Create default config if missing
         if not os.path.exists(self.config_path):
             default_config = {
@@ -289,7 +298,7 @@ class KnowledgeUpdater:
         
         for file in files:
             file_path = os.path.join(folder_path, file)
-            ext = os.path.splitext(file).lower()[1]
+            ext = os.path.splitext(file)[1].lower()[1:]
             file_records = []
             
             if ext == "csv":
@@ -509,10 +518,6 @@ class KnowledgeUpdater:
                 # simply restore by reading the XMLs if full data, or if sample, we can save a copy.
                 # Wait! A pristine backup is the easiest:
                 pristine_sample_path = os.path.join(self.data_dir, "pristine_sample_medquad_qa.csv")
-                if not os.path.exists(pristine_sample_path) and os.path.exists(active_csv):
-                    # Create the backup if it doesn't exist yet
-                    shutil.copy(active_csv, pristine_sample_path)
-                
                 if os.path.exists(pristine_sample_path):
                     shutil.copy(pristine_sample_path, active_csv)
             else:
