@@ -78,16 +78,18 @@ class KnowledgeUpdater:
             }
             self.save_config(default_config)
 
-    def load_config(self):
+    def load_config(self) -> dict:
         """Loads configuration from JSON file."""
         if not os.path.exists(self.config_path):
             self.initialize_directories()
         try:
             with open(self.config_path, "r", encoding="utf-8") as f:
-                return json.load(f)
+                data = json.load(f)
+                if isinstance(data, dict):
+                    return data
         except Exception as e:
             print(f"[Error] Failed to load config from {self.config_path}: {e}")
-            return {"sync_interval_seconds": 60, "scheduler_active": False, "sources": []}
+        return {"sync_interval_seconds": 60, "scheduler_active": False, "sources": []}
 
     def save_config(self, config):
         """Saves configuration to JSON file."""
@@ -102,12 +104,17 @@ class KnowledgeUpdater:
     def add_source(self, source_type, path_or_url):
         """Appends a new source to the configuration."""
         config = self.load_config()
+        if not isinstance(config, dict):
+            config = {"sources": []}
         # Clean paths or URLs
         path_or_url = path_or_url.strip()
         
         # Check for duplicate
-        for s in config.get("sources", []):
-            if s.get("type") == source_type and (s.get("path") == path_or_url or s.get("url") == path_or_url):
+        sources = config.get("sources", [])
+        if not isinstance(sources, list):
+            sources = []
+        for s in sources:
+            if isinstance(s, dict) and s.get("type") == source_type and (s.get("path") == path_or_url or s.get("url") == path_or_url):
                 return False  # Already exists
 
         new_source = {"type": source_type}
@@ -124,7 +131,11 @@ class KnowledgeUpdater:
     def remove_source(self, index):
         """Removes a source from the config by index."""
         config = self.load_config()
+        if not isinstance(config, dict):
+            config = {"sources": []}
         sources = config.get("sources", [])
+        if not isinstance(sources, list):
+            sources = []
         if 0 <= index < len(sources):
             sources.pop(index)
             config["sources"] = sources
@@ -379,10 +390,16 @@ class KnowledgeUpdater:
     def sync_all_sources(self):
         """Polls all configured sources, parses new rows, deduplicates, and re-indexes."""
         config = self.load_config()
+        if not isinstance(config, dict):
+            config = {"sources": []}
         sources = config.get("sources", [])
+        if not isinstance(sources, list):
+            sources = []
         new_records = []
 
         for source in sources:
+            if not isinstance(source, dict):
+                continue
             stype = source.get("type")
             if stype == "folder":
                 folder_path = source.get("path", self.pending_dir)
