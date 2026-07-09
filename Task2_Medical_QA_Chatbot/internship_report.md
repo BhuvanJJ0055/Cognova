@@ -1,94 +1,104 @@
-# Internship Report: Medical Q&A Chatbot (Task 2)
+# Internship Report: Medical Q&A Chatbot & Dynamic Knowledge Base (Tasks 2 & 3)
 **Author**: Bhuvan J J  
 **Workspace**: Cognova  
 **Domain**: Artificial Intelligence / Machine Learning / Natural Language Processing  
-**Date**: July 7, 2026  
+**Date**: July 9, 2026  
 
 ---
 
 ## 1. Introduction
-This report documents the design, implementation, and evaluation of **Task 2: Medical Q&A Chatbot** under the Cognova workspace. The objective of this task is to create a specialized medical question-answering assistant utilizing the MedQuAD dataset, implementing a semantic retrieval mechanism to find relevant medical answers, extracting medical entities (diseases, symptoms, treatments) from user queries, and providing a modern, interactive Streamlit user interface.
+This report documents the design, implementation, and evaluation of **Task 2 (Medical Q&A Chatbot)** and **Task 3 (Dynamic Knowledge Base Expansion)** under the Cognova workspace. 
+
+The objective of these integrated tasks is to:
+1. Create a specialized medical question-answering assistant utilizing the MedQuAD dataset, implementing a semantic retrieval mechanism to find relevant medical answers, extracting medical entities (diseases, symptoms, treatments) from user queries, and providing an interactive Streamlit user interface.
+2. Build a robust system for dynamically expanding the chatbot's knowledge base over time. This includes mechanisms to poll directories and remote URLs for new CSV, JSON, or XML knowledge assets, filter duplicate questions, merge records with the active database, rebuild the sparse vector index, and hot-reload the changes in the Streamlit UI in real-time.
 
 ---
 
 ## 2. Background
-In healthcare, patients and students need quick, reliable, and evidence-based information. Relying on general-purpose generative models risks hallucinated facts, which can be dangerous in medical contexts. A retrieval-based medical question-answering system mitigates this by restricting answers to a trusted corpus.
+In healthcare, patient-facing and research interfaces require rapid, credible, and up-to-date information. Relying on general generative LLMs risks hallucinations, which are unacceptable in clinical contexts. A retrieval-augmented generation (RAG) system restricts answers to a trusted corpus. However, medical knowledge is not static—new guidelines, drug approvals, and research emerge daily.
 
-For this implementation, the **MedQuAD (Medical Question Answering Dataset)** was utilized. MedQuAD contains 16,407 validated Q&A pairs originally annotated in XML files, sourced from credible NIH organizations. To build the chatbot, the following components were researched and implemented:
-1. **XML Data Parsing**: Flattening hierarchical annotations into tabular format.
-2. **TF-IDF + Cosine Similarity Indexing**: Creating a sparse retrieval engine capable of matching query text against thousands of indexed questions in real-time.
-3. **Medical Entity Recognition (NER)**: Building a fast, lightweight dictionary-based entity tagger with regular expression word-boundary protections.
+To address this, we developed:
+1. **Semantic Sparse Indexing**: A retrieval engine utilizing TF-IDF representations and cosine similarity to match query sentences against thousands of validated medical records.
+2. **Medical Entity Recognition (NER)**: A rule-based keyword extraction system protecting word boundaries (`\b`) to tag diseases, symptoms, and treatments.
+3. **Dynamic Ingestion Engine**: A data pipeline that reads from local folders (CSV, JSON, XML) and web endpoints to continuously incorporate new facts, preventing data duplication through rigorous question deduplication.
+4. **Hot-Reload Architecture**: A notification layer checking file modification timestamps (`mtime`) on disk so that running chatbot sessions immediately query new data without requiring server restarts.
 
 ---
 
 ## 3. Learning Objectives
-The primary learning objectives of this task were to:
-- Learn XML parsing techniques in Python using the `xml.etree.ElementTree` module to extract structured data and attributes.
-- Master Information Retrieval (IR) baselines, specifically TF-IDF vectorization and cosine similarity matching, and learn how to serialize retrieval indexes using `joblib`.
-- Build a rule-based Named Entity Recognition (NER) system using regular expressions, understanding how word boundary assertions prevent false positive subword matches.
-- Experience the integration of multiple distinct AI components (sentiment classifiers, semantic search engine, and NER taggers) into a unified application.
-- Build interactive, data-driven web applications using Streamlit, applying CSS styling and curated palettes to create a professional user interface.
+The primary learning objectives achieved were:
+- Master XML parsing using Python's `xml.etree.ElementTree` to flatten hierarchical data structures (like MedQuAD's XML format) into tabular formats.
+- Master sparse vector retrieval baselines, understanding Term Frequency-Inverse Document Frequency (TF-IDF) mathematical models, cosine similarity matrix projections, and index persistence via `joblib`.
+- Design regex-based Named Entity Recognition (NER) systems, using boundary markers (`\b`) to prevent false-positive subword matching.
+- Learn concurrent programming in Python by launching background scheduler threads to poll external endpoints without blocking the main application.
+- Master Streamlit cache-invalidation strategies, creating argument-dependent resource functions that refresh dynamically on disk updates.
 
 ---
 
 ## 4. Activities and Tasks
-The project was executed through the following activities:
-1. **轻量级 Data Ingestion & Setup**: Created a representative subset (`sample_medquad_qa.csv`) containing 40 high-quality Q&A pairs spanning diverse diseases.
-2. **Automated XML Loader (`data_loader.py`)**: Wrote a script that detects whether the local dataset folder exists, and if not, automatically downloads the master zip from the official MedQuAD GitHub repository, extracts it, scans for XML files, and parses the focus and question-answer details into a 16,407-row CSV.
-3. **Retrieval Engine (`build_index.py`)**: Implemented a TF-IDF vectorizer fit on questions. Created a serialization pipeline that bundles the vectorizer, the TF-IDF matrix, and parallel metadata into a single `.joblib` index.
-4. **Entity Recognition Tagger (`entity_recognition.py`)**: Built a recognizer that pulls disease names directly from the dataset's unique focus topics, compiles lists of common symptoms and treatments, and searches user text with word boundaries and descending length matching.
-5. **Interactive UI (`app.py` & unified root `app.py`)**: Built the Streamlit interface with color-coded entity pills and confidence badges. In the unified app, when a user asks a medical question, their query is also run through the sentiment classifier from Task 1, triggering an empathetic note if the user sounds upset or in pain.
-6. **Testing Suite**: Created automated tests (`test_entities.py` and `test_pipeline.py`) to run assertions on the codebase.
+The implementation was completed through the following activities:
+1. **Structured Data Ingestion**: Cleaned and compiled a 40-pair sample CSV (`sample_medquad_qa.csv`) and created an automated downloader (`data_loader.py`) to fetch the full 16,407-row MedQuAD dataset from GitHub on-demand.
+2. **Tagger & Retriever Pipelines**: Wrote `build_index.py` for TF-IDF matrix compilation and `entity_recognition.py` to extract longest-matching medical entities using regular expressions.
+3. **Dynamic Knowledge Updater (`knowledge_updater.py`)**: Built the core ingestion framework to manage:
+   - Configuration files (`sources_config.json`) listing directories and URLs to poll.
+   - Dynamic file parsers extracting question-answer pairs from CSV, JSON, and MedQuAD XML files.
+   - Merging and deduplication, saving unique additions to `custom_updates.csv` and updating the master database.
+   - Rebuilding the retrieval matrix on disk automatically on updates.
+   - Sync logs recording history in `update_history.json`.
+4. **Background Scheduler Thread**: Created a polling daemon that executes sync cycles periodically according to user-configured intervals.
+5. **Interactive UI Tabs (`app.py` & root `app.py`)**: Split both standalone and unified entry-point interfaces into two tabs:
+   - **💬 Advisor Chat**: The search panel with sentiment comforts, entity tag pills, and matching cards.
+   - **⚙️ Knowledge Management Hub**: A comprehensive dashboard displaying scheduler health, active sources, direct Q&A manual entry, custom database explorer, logs, and database wipe controls.
+6. **Automated Verification Suites**: Written and executed `test_pipeline.py`, `test_entities.py`, and `test_knowledge_update.py` to validate indexing, NER boundaries, folder synchronizations, deduplication, and database wipes.
 
 ---
 
 ## 5. Skills and Competencies
-The key technical skills developed and applied during this task include:
-- **Data Engineering**: XML manipulation, file path management, remote ZIP downloading, and CSV consolidation.
-- **Information Retrieval**: Term Frequency-Inverse Document Frequency, vector spaces, cosine similarity metrics, and index persistence.
-- **Natural Language Processing (NLP)**: Tokenization, keyword extraction, regex word boundaries, and named entity rules.
-- **Web App Development**: Streamlit state management, conditional rendering, custom HTML/CSS styling, and interactive analytics.
-- **Software Quality Assurance**: Automated unit testing, assertion writing, and test parameter cleanup.
+The technical competencies applied and developed during these tasks include:
+- **Data Pipeline Engineering**: File system routing, remote resource downloading, archive unzipping, and parsing of diverse standard formats (CSV, JSON, XML).
+- **Information Retrieval & NLP**: TF-IDF weighting, vector space modeling, cosine similarity ranking, index serialization, and pattern-based NER keyword matching.
+- **Concurrent Programming**: Background daemon thread management, loop scheduling, safe file modification polling, and thread-safe data appending.
+- **Frontend/UI Development**: Streamlit state preservation, dynamic widget updates, custom CSS styling with premium HSL medical colors, and cache resource management.
+- **Software Quality Assurance**: Automated unit testing, testing in isolated sandboxes, assertion writing, and database state restoration.
 
 ---
 
 ## 6. Feedback and Evidence
-The implemented components were verified and achieved excellent performance:
-- **Retrieval Accuracy**: Testing with specific queries (e.g. "What is Asthma?") successfully returned the exact matched entry with a similarity of `1.000` (100% confidence). Partial searches like "how to treat diabetes" matched the correct diabetes treatment card with high similarity (~0.75+).
-- **Entity Tagging Precision**: The boundary test asserted that subwords were ignored (e.g., "pain" inside "painting" was correctly skipped, while "headache" was tagged as a symptom). Multi-word disease names like "celiac disease" were successfully extracted as a single disease tag.
-- **Cross-Feature Integration**: When testing queries like "I am in horrible pain and cannot breathe, does influenza cause fever?", the unified app successfully:
-  1. Detected "upset" sentiment and displayed a warm, empathetic comforting note.
-  2. Extracted "influenza" (disease), "pain", "fever", "cannot breathe" (symptoms).
-  3. Retrieved the correct Influenza symptoms answer from MedQuAD.
-
-All assertions were validated by running `test_entities.py` and `test_pipeline.py` successfully.
+The system was verified and demonstrated excellent performance across all domains:
+- **Retrieval Accuracy**: Querying "What is Asthma?" returns the direct match with a `1.00` similarity score (100% Match Score). 
+- **Entity Tagging Precision**: The system successfully ignores subwords (e.g. "pain" inside "painting" is skipped, while "joint pain" is extracted).
+- **Dynamic Extension Verification**: Automated unit tests in `test_knowledge_update.py` executed successfully, asserting that:
+  1. Direct manual injection appends records to the index and makes them searchable instantly.
+  2. Duplicate questions are updated rather than double-inserted, confirming deduplication.
+  3. Scan folder synchronizations parse CSV and XML, archive raw files into `processed_updates/`, merge the results, rebuild the index, and verify correct retrieval.
+  4. Wiping custom knowledge restores the active CSV to its original, pristine base state.
 
 ---
 
 ## 7. Challenges and Solutions
 
-### Challenge 1: MedQuAD dataset size and Git storage limits
-- **Problem**: The raw XML repository and final parsed data exceed 50MB, making it heavy to bundle or commit directly.
-- **Solution**: Bundled a clean, 40-pair sample CSV for instant testing. Implemented an automatic downloader in `data_loader.py` and an "Import Full Dataset" button in Streamlit, which downloads, extracts, and indexes the entire dataset on-demand.
+### Challenge 1: Keeping the Streamlit UI in sync with background thread updates
+- **Problem**: Streamlit runs sessions in separate threads. If a background sync thread updates the index file on disk, existing user tabs remain unaware and keep querying old cached indexes in memory.
+- **Solution**: Implemented an **Index Modification-Time Monitor**. On every UI rerun, the session checks the modification timestamp (`mtime`) of `retriever_index.joblib` on disk. If the file is newer, the session increments a `reload_count` state variable. By passing this variable as a parameter to the cached `@st.cache_resource` load functions, Streamlit automatically invalidates the stale cache and hot-reloads the new index.
 
-### Challenge 2: False positive subword matches in entity recognition
-- **Problem**: Simple substring matching tagged generic words inside other words (e.g. matching the treatment "in" or the symptom "pain" inside "painting").
-- **Solution**: Upgraded the matching pattern to use regular expressions with word boundary markers `\b` (e.g. `r'\b' + re.escape(term) + r'\b'`), ensuring only complete words and phrases are matched.
+### Challenge 2: Accidental data loss during database wiping/restoring
+- **Problem**: When a user clicks "Wipe Custom Knowledge" to delete dynamic additions, we must restore the active CSV to its original state. However, the database might be running on the Demo Sample or the full 16,407-row dataset, risking data loss or truncation.
+- **Solution**: Implemented an automated backup system. On first startup, the app makes a backup of the original dataset (`pristine_sample_medquad_qa.csv`). Wiping restores this pristine backup for the sample mode, or triggers the XML parser recursively to rebuild the full dataset cleanly.
 
-### Challenge 3: Path resolution when running the unified app
-- **Problem**: Path imports failed when launching the app from the root directory due to files living in task-specific folders.
-- **Solution**: Dynamically appended task folders to `sys.path` in the root `app.py`, ensuring all module imports resolve correctly regardless of from where the app is launched.
+### Challenge 3: Path resolution across standalone and unified app modules
+- **Problem**: Relative paths in imports failed when launching the app from the root directory rather than task folders.
+- **Solution**: Standardized imports and resolved all directories dynamically using `os.path.dirname(os.path.abspath(__file__))` within `knowledge_updater.py`, making the path routing location-agnostic.
 
 ---
 
 ## 8. Outcomes and Impact
-The outcomes of this task are:
-1. **Reliable Medical Retrieval**: Semantically retrieves credible, physician-written Q&As from MedQuAD, avoiding LLM hallucinations.
-2. **Intelligent Query Interpretation**: Color-coded entity tagging highlights key symptoms, diseases, and treatments, helping users see what terms drove the search.
-3. **Unified User Experience**: The single Streamlit app binds the Customer Support Agent and Medical Advisor, highlighting a cohesive, multi-domain AI platform.
-4. **Empathetic Medical Interface**: Blending sentiment analysis with medical search shows how AI can adapt to distressed patients, providing comfort alongside hard facts.
+The outcomes of these integrated tasks are:
+1. **Self-Expanding Healthcare Base**: The chatbot is no longer restricted to static launch data. It automatically incorporates new guidelines, clinical updates, or local hospital FAQs dynamically.
+2. **Empathetic and Multi-Domain Interface**: The unified app binds VADER sentiment comforts with retrieval systems, showing how AI can comfort worried patients while delivering reliable, structured answers.
+3. **No-Downtime Knowledge Hot-Swapping**: The Hot-Reload system allows medical database admins to drop new XML/CSV update files or input manual entries in the dashboard, and patients immediately receive the updated answers without any service downtime.
 
 ---
 
 ## 9. Conclusion
-Task 2 has been successfully completed and integrated. By parsing the MedQuAD XML data, implementing a self-contained TF-IDF retrieval index, designing a precise entity recognizer, and building a sleek, unified Streamlit application, we have constructed a reliable, production-ready healthcare assistant. The cross-module integration (sentiment-aware medical search) provides a blueprint for human-centric AI interactions.
+By building a self-contained TF-IDF retrieval index, designing a regex entity extractor, and implementing a thread-based background knowledge ingestion sync engine, we have created a scalable, production-ready medical Q&A advisor. The combination of structured data pipelines, thread-safe sync loops, and reload-aware caching shows how RAG systems can adapt dynamically over time while maintaining 100% hallucination-free medical compliance.
