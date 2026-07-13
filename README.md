@@ -59,6 +59,16 @@ Cognova/
 │   ├── test_pipeline.py        # Semantic retrieval unit assertions
 │   ├── internship_report.md    # Task 2 Internship Report
 │   └── README.md               # Task 2 setup & methodology
+├── Task3_ArXiv_CS_Chatbot/     # Task 3: ArXiv Scientific Paper Expert Advisor
+│   ├── data/                   # ArXiv CS database & serialized retriever index
+│   ├── arxiv_loader.py         # Local loading & live API search/fetch
+│   ├── build_arxiv_index.py    # TF-IDF Cosine Similarity retriever
+│   ├── nlp_utils.py            # Extractive summarizer and Regex NER tagger
+│   ├── llm_explainer.py        # LLM connector & offline fallback synthesis
+│   ├── app.py                  # Standalone ArXiv advisor dashboard
+│   ├── test_arxiv_pipeline.py  # Scientific retrieval & extraction tests
+│   ├── internship_report.md    # Task 3 Internship Report
+│   └── README.md               # Task 3 setup & methodology
 ├── app.py                      # Root Streamlit Application (Unified Hub)
 ├── requirements.txt            # Root dependencies
 ├── pyrefly.toml                # Project settings
@@ -78,11 +88,16 @@ Cognova/
    pip install -r requirements.txt
    ```
 
-3. **Initialize the Medical Dataset & Build Indexes:**
-   To prepare the medical indices and run the test suites, execute the processor:
-   ```bash
-   python Task2_Medical_QA_Chatbot/data_processor.py
-   ```
+3. **Initialize the Datasets & Build Indexes:**
+   To prepare the indices and run the test suites:
+   * **Medical Q&A (Task 2)**:
+     ```bash
+     python Task2_Medical_QA_Chatbot/data_processor.py
+     ```
+   * **ArXiv CS Chatbot (Task 3)**:
+     ```bash
+     python Task3_ArXiv_CS_Chatbot/test_arxiv_pipeline.py
+     ```
 
 4. **Launch the Unified Streamlit App:**
    ```bash
@@ -93,6 +108,7 @@ Cognova/
 
 * 📄 **Task 1 Report:** [Task1 Internship Report](file:///c:/Users/bhuva/Cognova/Task1_Sentiment_Chatbot/internship_report.md)
 * 📄 **Task 2 Report:** [Task2 Internship Report](file:///c:/Users/bhuva/Cognova/Task2_Medical_QA_Chatbot/internship_report.md)
+* 📄 **Task 3 Report:** [Task3 Internship Report](file:///c:/Users/bhuva/Cognova/Task3_ArXiv_CS_Chatbot/internship_report.md)
 
 ## License
 
