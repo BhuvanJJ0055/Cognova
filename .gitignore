@@ -226,6 +226,9 @@ Task2_Medical_QA_Chatbot/data/medquad_qa.csv
 Task2_Medical_QA_Chatbot/data/retriever_index.joblib
 Task2_Medical_QA_Chatbot/data/test_retriever_index.joblib
 
+# Local credentials
+.env
+
 # Local chat history log files
 Task1_Sentiment_Chatbot/chat_history.csv
 chat_history.csv

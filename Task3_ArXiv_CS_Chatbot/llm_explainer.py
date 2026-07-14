@@ -142,7 +142,9 @@ def generate_local_explanation(query: str, retrieved_papers: list, chat_history:
         "or specific ML terms like overfitting, reinforcement learning, or word embeddings."
     )
 
-def query_huggingface_api(messages: list, api_token: str = None, model_id: str = DEFAULT_HF_MODEL) -> str:
+from typing import Any, Optional
+
+def query_huggingface_api(messages: list, api_token: Optional[str] = None, model_id: str = DEFAULT_HF_MODEL) -> str:
     """Calls Hugging Face Serverless Inference API to generate a chat response."""
     url = f"https://api-inference.huggingface.co/models/{model_id}"
     
@@ -194,7 +196,7 @@ def query_huggingface_api(messages: list, api_token: str = None, model_id: str =
 
 def query_gemini_api(messages: list, api_key: str) -> str:
     """Calls Google Gemini API to generate a chat response."""
-    url = f"https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key={api_key}"
+    url = f"https://generativelanguage.googleapis.com/v1beta/models/gemini-3.5-flash:generateContent?key={api_key}"
     
     # Map messages to Gemini contents structure
     contents = []
@@ -211,7 +213,7 @@ def query_gemini_api(messages: list, api_key: str) -> str:
                 "parts": [{"text": content}]
             })
             
-    payload = {"contents": contents}
+    payload: dict[str, Any] = {"contents": contents}
     if system_instruction:
         payload["systemInstruction"] = {"parts": [{"text": system_instruction}]}
         
@@ -229,7 +231,7 @@ def query_gemini_api(messages: list, api_key: str) -> str:
         
     return ""
 
-def generate_explanation(query: str, retrieved_papers: list, chat_history: list, hf_token: str = None, gemini_key: str = None) -> str:
+def generate_explanation(query: str, retrieved_papers: list, chat_history: list, hf_token: Optional[str] = None, gemini_key: Optional[str] = None) -> str:
     """
     Orchestrates explanation generation. Try LLM APIs if keys are provided,
     otherwise default to the smart local fallback explainer.

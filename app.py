@@ -15,6 +15,16 @@ displays an empathetic, comforting de-escalation message before retrieving the m
 
 import sys
 import os
+import re
+# Load local .env variables manually if exists
+env_path = os.path.join(os.path.dirname(os.path.abspath(__file__)), ".env")
+if os.path.exists(env_path):
+    with open(env_path, "r", encoding="utf-8") as f:
+        for line in f:
+            if "=" in line and not line.strip().startswith("#"):
+                key, val = line.strip().split("=", 1)
+                os.environ[key.strip()] = val.strip()
+
 import json
 import streamlit as st
 import pandas as pd
@@ -27,6 +37,10 @@ BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 sys.path.append(os.path.join(BASE_DIR, "Task1_Sentiment_Chatbot"))
 sys.path.append(os.path.join(BASE_DIR, "Task2_Medical_QA_Chatbot"))
 sys.path.append(os.path.join(BASE_DIR, "Task3_ArXiv_CS_Chatbot"))
+sys.path.append(os.path.join(BASE_DIR, "Task4_Multimodal_Assistant"))
+
+# Import Task 4 Modules
+from Task4_Multimodal_Assistant.multimodal_agent import MultimodalAgent
 
 # Import Task 3 Modules
 from Task3_ArXiv_CS_Chatbot.arxiv_loader import get_local_papers, search_arxiv_api, import_papers_to_local, CSV_PATH as ARXIV_CSV_PATH
@@ -188,6 +202,24 @@ if "arxiv_chat_history" not in st.session_state:
 if "arxiv_last_retrieved" not in st.session_state:
     st.session_state.arxiv_last_retrieved = []
 
+if "multimodal_chat_history" not in st.session_state:
+    st.session_state.multimodal_chat_history = []
+
+if "multimodal_last_retrieved" not in st.session_state:
+    st.session_state.multimodal_last_retrieved = []
+
+if "multimodal_visual_analysis" not in st.session_state:
+    st.session_state.multimodal_visual_analysis = {}
+
+if "multimodal_routing_notes" not in st.session_state:
+    st.session_state.multimodal_routing_notes = ""
+
+@st.cache_resource
+def get_multimodal_agent():
+    return MultimodalAgent()
+
+multimodal_agent = get_multimodal_agent()
+
 # Load database info dynamically (reflects background updates)
 df_stats = pd.read_csv(csv_path)
 total_qa_pairs = len(df_stats)
@@ -211,6 +243,8 @@ arxiv_max_results = 3
 arxiv_llm_option = "Local Fallback (Deterministic)"
 arxiv_hf_token = ""
 arxiv_gemini_key = ""
+multimodal_gemini_key = ""
+multimodal_consistency_threshold = 0.35
 
 retriever = get_retriever(reload_count=st.session_state.reload_count)
 recognizer = get_recognizer(reload_count=st.session_state.reload_count)
@@ -224,7 +258,7 @@ with st.sidebar:
     
     app_mode = st.radio(
         "Select Application Module:",
-        ["💬 Customer Support Agent", "⚕️ Medical Q&A Advisor", "📚 ArXiv Scientific Expert"]
+        ["💬 Customer Support Agent", "⚕️ Medical Q&A Advisor", "📚 ArXiv Scientific Expert", "📸 Multi-Modal Agent"]
     )
     
     st.markdown("---")
@@ -283,7 +317,7 @@ with st.sidebar:
                         st.rerun()
                     except Exception as ex:
                         st.error(f"Ingestion failed: {ex}")
-    else:
+    elif app_mode == "📚 ArXiv Scientific Expert":
         st.subheader("ArXiv Scientific Expert Config")
         df_arxiv_stats = get_local_papers()
         st.write(f"**Indexed Papers:** {len(df_arxiv_stats)}")
@@ -313,12 +347,12 @@ with st.sidebar:
         )
         
         arxiv_hf_token = ""
-        arxiv_gemini_key = ""
+        arxiv_gemini_key = os.environ.get("GEMINI_API_KEY", "")
         
         if arxiv_llm_option == "Hugging Face Inference API":
-            arxiv_hf_token = st.text_input("HF API Token", type="password", help="Input Hugging Face Bearer Token", key="arxiv_sidebar_hf_tok")
+            arxiv_hf_token = st.text_input("HF API Token", type="password", value=os.environ.get("HF_API_TOKEN", ""), help="Input Hugging Face Bearer Token", key="arxiv_sidebar_hf_tok")
         elif arxiv_llm_option == "Google Gemini API":
-            arxiv_gemini_key = st.text_input("Gemini API Key", type="password", help="Input Google Gemini API Key", key="arxiv_sidebar_gem_key")
+            arxiv_gemini_key = st.text_input("Gemini API Key", type="password", value=arxiv_gemini_key, help="Input Google Gemini API Key", key="arxiv_sidebar_gem_key")
             
         if st.button("Clear ArXiv Chat Memory", key="arxiv_clear_mem"):
             st.session_state.arxiv_chat_history = []
@@ -353,6 +387,56 @@ with st.sidebar:
                 st.rerun()
             except Exception as e:
                 st.error(f"Ingestion failed: {e}")
+    else:
+        st.subheader("📸 Multi-Modal Config")
+        st.write("Reason across text and image inputs with agentic routing and factual verification.")
+        
+        multimodal_consistency_threshold = st.slider(
+            "Factual Consistency Cutoff",
+            min_value=0.0,
+            max_value=1.0,
+            value=0.35,
+            step=0.05,
+            help="If the generated response's similarity with retrieved evidence is below this threshold, a warning will be displayed."
+        )
+        
+        multimodal_gemini_key = st.text_input(
+            "Gemini API Key",
+            type="password",
+            value=os.environ.get("GEMINI_API_KEY", ""),
+            help="Provide a Google Gemini API Key to enable live multimodal analysis. If left blank, local offline heuristics will run.",
+            key="multimodal_sidebar_gem_key"
+        )
+        
+        if st.button("Clear Multimodal Chat History", key="multimodal_clear_mem"):
+            st.session_state.multimodal_chat_history = []
+            st.session_state.multimodal_last_retrieved = []
+            st.session_state.multimodal_routing_notes = ""
+            st.session_state.multimodal_visual_analysis = {}
+            st.toast("Multimodal chat history cleared!")
+
+        st.markdown("---")
+        st.subheader("🧪 Automated Diagnostics")
+        st.write("Run the unit test suite inside the application server.")
+        if st.button("Run Multimodal Unit Tests", key="multimodal_run_tests_btn"):
+            import unittest
+            from Task4_Multimodal_Assistant.test_multimodal import TestMultimodalAgent
+            
+            # Load test suite
+            suite = unittest.TestLoader().loadTestsFromTestCase(TestMultimodalAgent)
+            
+            # Run test suite and capture output
+            from io import StringIO
+            stream = StringIO()
+            runner = unittest.TextTestRunner(stream=stream, verbosity=2)
+            result = runner.run(suite)
+            
+            # Display results
+            st.code(stream.getvalue())
+            if result.wasSuccessful():
+                st.success("All tests passed successfully!")
+            else:
+                st.error(f"Test suite failed with {len(result.failures)} failures and {len(result.errors)} errors.")
 
 
 # Header Card
@@ -672,7 +756,7 @@ elif app_mode == "⚕️ Medical Q&A Advisor":
         else:
             st.info("No sync history logged yet.")
 
-else: # ArXiv Scientific Expert
+elif app_mode == "📚 ArXiv Scientific Expert":
     # Initialize retriever
     arxiv_retriever = ArXivRetriever()
     df_arxiv_papers = get_local_papers()
@@ -890,3 +974,224 @@ else: # ArXiv Scientific Expert
                 st.error(f"Failed to generate visualization: {e}")
         else:
             st.warning("Retriever index not loaded. Cannot run PCA visualization.")
+
+else: # Multi-Modal Agent
+    st.markdown("""
+    <div style="background-color: rgba(15, 32, 39, 0.05); border-left: 5px solid #0f2027; padding: 1rem; border-radius: 8px; margin-bottom: 1.5rem;">
+        <h5 style="color: #0f2027; margin: 0; font-weight: bold;">📸 Multi-Modal AI Assistant Instructions</h5>
+        <p style="margin: 0.5rem 0 0 0; color: #2d3748; font-size: 0.95rem;">
+            Upload an image (scan, chart, receipt, etc.) and ask a question. The assistant automatically routes 
+            the input to the relevant index, retrieves evidence, generates a grounded response, and checks for hallucinations.
+        </p>
+    </div>
+    """, unsafe_allow_html=True)
+
+    col_upload, col_chat = st.columns([1, 2])
+
+    with col_upload:
+        st.subheader("🖼️ Ingest Visual Input")
+        uploaded_file = st.file_uploader(
+            "Upload Image (PNG, JPG, JPEG)", 
+            type=["png", "jpg", "jpeg"],
+            key="multimodal_file_uploader"
+        )
+        
+        if uploaded_file is not None:
+            # 1. Display Image
+            st.image(uploaded_file, caption="Uploaded Visual Input", use_container_width=True)
+            
+            # 2. Extract properties
+            props = multimodal_agent.parse_image_properties(uploaded_file)
+            st.markdown("#### 📊 Image Properties")
+            if "error" not in props:
+                st.write(f"- **Format:** `{props['format']}` | **Mode:** `{props['mode']}`")
+                st.write(f"- **Dimensions:** `{props['width']}x{props['height']}` pixels")
+                st.write(f"- **Megapixels:** `{props['megapixels']}` MP")
+            else:
+                st.error(props["error"])
+
+            # 3. Dynamic Ambiguity Override options
+            st.markdown("#### 🛠️ Ambiguity Override Options")
+            st.write("If the agent misroutes the image domain, you can manually override it here:")
+            override_domain = st.selectbox(
+                "Manual Domain Override",
+                ["No Override (Let Agent Decide)", "Medical", "Scientific/CS", "Customer Support", "General"],
+                key="multimodal_domain_override"
+            )
+            
+            # Store in session state
+            st.session_state.multimodal_domain_override_val = override_domain
+        else:
+            st.info("Upload an image file to start the multimodal session.")
+
+    with col_chat:
+        st.subheader("💬 Conversations with Evidence Checks")
+        
+        # Display past chats
+        for idx, chat in enumerate(st.session_state.multimodal_chat_history):
+            # User bubble
+            st.markdown(f"""
+            <div class="message-container user-msg">
+                <b>User:</b> "{chat['prompt']}" <br>
+                <small style="color: #718096;">Uploaded file: <code>{chat['filename']}</code> ({chat['properties'].get('width')}x{chat['properties'].get('height')})</small>
+            </div>
+            """, unsafe_allow_html=True)
+            
+            # Routing card
+            domain_color = "#3182ce" if chat['domain'] == "scientific" else ("#10b981" if chat['domain'] == "medical" else "#ef4444")
+            st.markdown(f"""
+            <div style="background-color: #f7fafc; border-left: 4px solid {domain_color}; padding: 0.75rem 1rem; border-radius: 6px; margin-bottom: 0.75rem;">
+                <span class="pill" style="background-color: {domain_color}22; color: {domain_color}; font-weight: bold; text-transform: uppercase;">routed: {chat['domain']}</span>
+                <p style="margin: 0.5rem 0 0 0; font-size: 0.9rem; color: #4a5568;"><b>Visual Findings:</b> {chat['visual_desc']}</p>
+                <p style="margin: 0.25rem 0 0 0; font-size: 0.8rem; color: #718096; font-style: italic;">{chat['routing_notes']}</p>
+            </div>
+            """, unsafe_allow_html=True)
+            
+            # AI assistant explanation
+            st.markdown(f"""
+            <div class="message-container assistant-msg">
+                <b>AI Assistant:</b><br>
+                {chat['response']}
+            </div>
+            """, unsafe_allow_html=True)
+
+            # Factual Validation banner
+            score_pct = int(chat['consistency_score'] * 100)
+            if chat['consistency_score'] >= 0.70:
+                banner_color = "rgba(16, 185, 129, 0.1)"
+                border_color = "#10b981"
+                text_color = "#064e3b"
+                status_lbl = "✅ High Factual Consistency"
+            elif chat['consistency_score'] >= 0.35:
+                banner_color = "rgba(245, 158, 11, 0.1)"
+                border_color = "#f59e0b"
+                text_color = "#78350f"
+                status_lbl = "⚠️ Moderate Factual Consistency"
+            else:
+                banner_color = "rgba(239, 68, 68, 0.1)"
+                border_color = "#ef4444"
+                text_color = "#7f1d1d"
+                status_lbl = "🚨 Low Factual Consistency (Potential Hallucination Warning)"
+
+            st.markdown(f"""
+            <div style="background-color: {banner_color}; border: 1px solid {border_color}; border-radius: 8px; padding: 1rem; margin-bottom: 1.5rem; color: {text_color};">
+                <h6 style="margin: 0; font-weight: bold; color: {border_color};">{status_lbl} - Score: {score_pct}%</h6>
+                <p style="margin: 0.5rem 0 0 0; font-size: 0.85rem; line-height: 1.4;">
+                    <b>Aligned Terms (Evidence-backed):</b> {", ".join(chat['aligned_keywords']) if chat['aligned_keywords'] else 'None'}<br>
+                    <span style="color: #ef4444;"><b>Missing/Extra Terms (Unsupported):</b> {", ".join(chat['missing_keywords']) if chat['missing_keywords'] else 'None'}</span>
+                </p>
+            </div>
+            """, unsafe_allow_html=True)
+
+            # References details
+            if chat['context']:
+                with st.expander("📚 Show Matched Verifiable Reference Documents", expanded=False):
+                    for r_idx, ref in enumerate(chat['context']):
+                        st.markdown(f"**Document [{r_idx+1}]**: {ref['title']}")
+                        st.write(ref["text"])
+                        st.caption(f"Source: {ref['source']}")
+                        st.markdown("---")
+
+        # Chat inputs
+        st.write("---")
+        m_prompt = st.text_input(
+            "Enter query or comment on the image:",
+            placeholder="e.g. Is there any evidence of pneumonia in this X-ray? or Explain this PCA cluster plot.",
+            key="multimodal_query_input_text"
+        )
+        
+        # Ambiguity resolving warning
+        if uploaded_file is not None and m_prompt:
+            props = multimodal_agent.parse_image_properties(uploaded_file)
+            clarifications = multimodal_agent.check_ambiguity(m_prompt, uploaded_file.name, props)
+            if clarifications:
+                st.warning("⚠️ **Ambiguity Detected in Query / Image Combination:**")
+                for q in clarifications:
+                    st.write(f"- {q}")
+                st.info("💡 *Tip: Try describing details of the image or type a longer, more specific question.*")
+
+        if st.button("Send Multimodal Query", type="primary", key="multimodal_send_query_btn"):
+            if uploaded_file is None:
+                st.error("Please upload an image file first.")
+            elif not m_prompt:
+                st.error("Please enter a question or query about the image.")
+            else:
+                with st.spinner("Analyzing image and routing query..."):
+                    # Extract properties
+                    props = multimodal_agent.parse_image_properties(uploaded_file)
+                    filename = uploaded_file.name
+                    
+                    # 1. Run visual analysis
+                    if multimodal_gemini_key:
+                        # Call Gemini Multimodal API to get detailed description
+                        desc_prompt = (
+                            "Extract all relevant details from this image. If it is a medical scan, describe anatomical observations. "
+                            "If it is a technical chart or PCA scatter plot, detail clusters, trends, and axes. "
+                            "If it is a document, screenshot, or receipt, perform OCR to extract text and details. "
+                            "Write a detailed summary of key facts."
+                        )
+                        visual_desc = multimodal_agent.query_gemini_multimodal(uploaded_file, desc_prompt, multimodal_gemini_key)
+                        
+                        # Set routed domain by classifying visual desc
+                        desc_lower = visual_desc.lower() + " " + m_prompt.lower()
+                        if any(w in desc_lower for w in ["xray", "medical", "scan", "mri", "symptom", "pneumonia", "gout", "disease", "clinical"]):
+                            routed_domain = "medical"
+                        elif any(w in desc_lower for w in ["chart", "plot", "graph", "pca", "vector", "attention", "transformer", "arxiv", "paper", "concept"]):
+                            routed_domain = "scientific"
+                        elif any(w in desc_lower for w in ["receipt", "invoice", "ticket", "bill", "order", "support", "angry", "upset"]):
+                            routed_domain = "support"
+                        else:
+                            routed_domain = "general"
+                            
+                        visual_analysis = {
+                            "routed_domain": routed_domain,
+                            "description": visual_desc,
+                            "detected_entities": re.findall(r'\b[a-zA-Z]{5,20}\b', m_prompt)
+                        }
+                    else:
+                        # Call local offline visual analysis heuristics
+                        visual_analysis = multimodal_agent.run_local_visual_fallback(filename, props, m_prompt)
+                    
+                    # Apply manual override if selected
+                    override_val = st.session_state.get("multimodal_domain_override_val", "No Override (Let Agent Decide)")
+                    if override_val != "No Override (Let Agent Decide)":
+                        if override_val == "Medical":
+                            visual_analysis["routed_domain"] = "medical"
+                        elif override_val == "Scientific/CS":
+                            visual_analysis["routed_domain"] = "scientific"
+                        elif override_val == "Customer Support":
+                            visual_analysis["routed_domain"] = "support"
+                        else:
+                            visual_analysis["routed_domain"] = "general"
+
+                    # 2. Agentic Routing & Retrieve evidence
+                    domain, context, routing_notes = multimodal_agent.agentic_route_and_retrieve(m_prompt, visual_analysis)
+                    
+                    # 3. Generate final response
+                    response = multimodal_agent.generate_response(
+                        prompt=m_prompt,
+                        visual_desc=visual_analysis["description"],
+                        context=context,
+                        gemini_key=multimodal_gemini_key if multimodal_gemini_key else None
+                    )
+                    
+                    # 4. Run Factual Validation (Hallucination check)
+                    score, aligned, missing = multimodal_agent.check_factual_consistency(response, context)
+                    
+                    # Add to session history
+                    st.session_state.multimodal_chat_history.append({
+                        "prompt": m_prompt,
+                        "filename": filename,
+                        "properties": props,
+                        "domain": domain,
+                        "visual_desc": visual_analysis["description"],
+                        "routing_notes": routing_notes,
+                        "response": response,
+                        "context": context,
+                        "consistency_score": score,
+                        "aligned_keywords": aligned,
+                        "missing_keywords": missing
+                    })
+                    
+                    st.rerun()
+

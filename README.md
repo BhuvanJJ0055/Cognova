@@ -69,6 +69,10 @@ Cognova/
 │   ├── test_arxiv_pipeline.py  # Scientific retrieval & extraction tests
 │   ├── internship_report.md    # Task 3 Internship Report
 │   └── README.md               # Task 3 setup & methodology
+├── Task4_Multimodal_Assistant/ # Task 4: Multi-Modal AI Assistant with Routing & Validation
+│   ├── multimodal_agent.py     # Ingestion, routing, ambiguity handling, and validation logic
+│   ├── test_multimodal.py      # Automated unit tests for multimodal assistant
+│   └── internship_report.md    # Task 4 Internship Report
 ├── app.py                      # Root Streamlit Application (Unified Hub)
 ├── requirements.txt            # Root dependencies
 ├── pyrefly.toml                # Project settings
@@ -109,6 +113,7 @@ Cognova/
 * 📄 **Task 1 Report:** [Task1 Internship Report](file:///c:/Users/bhuva/Cognova/Task1_Sentiment_Chatbot/internship_report.md)
 * 📄 **Task 2 Report:** [Task2 Internship Report](file:///c:/Users/bhuva/Cognova/Task2_Medical_QA_Chatbot/internship_report.md)
 * 📄 **Task 3 Report:** [Task3 Internship Report](file:///c:/Users/bhuva/Cognova/Task3_ArXiv_CS_Chatbot/internship_report.md)
+* 📄 **Task 4 Report:** [Task4 Internship Report](file:///c:/Users/bhuva/Cognova/Task4_Multimodal_Assistant/internship_report.md)
 
 ## License
 
