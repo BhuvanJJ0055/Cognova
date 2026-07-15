@@ -60,7 +60,7 @@ class ArXivRetriever:
         
         # Combine title and summary for rich semantic indexing
         # Double weight on title to emphasize title match over abstract text
-        corpus_texts = df["title"] + " " + df["title"] + " " + df["summary"]
+        corpus_texts = [f"{t} {t} {s}" for t, s in zip(df["title"], df["summary"])]
         
         # Initialize TF-IDF Vectorizer
         self.vectorizer = TfidfVectorizer(

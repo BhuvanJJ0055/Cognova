@@ -196,7 +196,7 @@ def query_huggingface_api(messages: list, api_token: Optional[str] = None, model
 
 def query_gemini_api(messages: list, api_key: str) -> str:
     """Calls Google Gemini API to generate a chat response."""
-    url = f"https://generativelanguage.googleapis.com/v1beta/models/gemini-3.5-flash:generateContent?key={api_key}"
+    url = "https://generativelanguage.googleapis.com/v1beta/models/gemini-flash-latest:generateContent"
     
     # Map messages to Gemini contents structure
     contents = []
@@ -218,7 +218,11 @@ def query_gemini_api(messages: list, api_key: str) -> str:
         payload["systemInstruction"] = {"parts": [{"text": system_instruction}]}
         
     try:
-        response = requests.post(url, json=payload, headers={"Content-Type": "application/json"}, timeout=15)
+        headers = {
+            "Content-Type": "application/json",
+            "x-goog-api-key": api_key
+        }
+        response = requests.post(url, json=payload, headers=headers, timeout=15)
         if response.status_code == 200:
             data = response.json()
             candidates = data.get("candidates", [])
@@ -227,7 +231,10 @@ def query_gemini_api(messages: list, api_key: str) -> str:
                 return text
         print(f"[LLM] Gemini API error {response.status_code}: {response.text}")
     except Exception as e:
-        print(f"[LLM] Error contacting Gemini: {e}")
+        clean_error = str(e)
+        if api_key:
+            clean_error = clean_error.replace(api_key, "REDACTED_API_KEY")
+        print(f"[LLM] Error contacting Gemini: {clean_error}")
         
     return ""
 

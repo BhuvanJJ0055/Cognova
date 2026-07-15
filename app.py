@@ -347,12 +347,18 @@ with st.sidebar:
         )
         
         arxiv_hf_token = ""
-        arxiv_gemini_key = os.environ.get("GEMINI_API_KEY", "")
+        arxiv_gemini_key = ""
         
         if arxiv_llm_option == "Hugging Face Inference API":
-            arxiv_hf_token = st.text_input("HF API Token", type="password", value=os.environ.get("HF_API_TOKEN", ""), help="Input Hugging Face Bearer Token", key="arxiv_sidebar_hf_tok")
+            has_system_hf = bool(os.environ.get("HF_API_TOKEN"))
+            placeholder = "System default active" if has_system_hf else "Enter HF API Token"
+            arxiv_hf_token_input = st.text_input("HF API Token", type="password", placeholder=placeholder, help="Input Hugging Face Bearer Token", key="arxiv_sidebar_hf_tok")
+            arxiv_hf_token = arxiv_hf_token_input if arxiv_hf_token_input else os.environ.get("HF_API_TOKEN", "")
         elif arxiv_llm_option == "Google Gemini API":
-            arxiv_gemini_key = st.text_input("Gemini API Key", type="password", value=arxiv_gemini_key, help="Input Google Gemini API Key", key="arxiv_sidebar_gem_key")
+            has_system_gemini = bool(os.environ.get("GEMINI_API_KEY"))
+            placeholder = "System default active" if has_system_gemini else "Enter Gemini API Key"
+            arxiv_gemini_key_input = st.text_input("Gemini API Key", type="password", placeholder=placeholder, help="Input Google Gemini API Key", key="arxiv_sidebar_gem_key")
+            arxiv_gemini_key = arxiv_gemini_key_input if arxiv_gemini_key_input else os.environ.get("GEMINI_API_KEY", "")
             
         if st.button("Clear ArXiv Chat Memory", key="arxiv_clear_mem"):
             st.session_state.arxiv_chat_history = []
@@ -400,13 +406,16 @@ with st.sidebar:
             help="If the generated response's similarity with retrieved evidence is below this threshold, a warning will be displayed."
         )
         
-        multimodal_gemini_key = st.text_input(
+        has_system_gemini_key = bool(os.environ.get("GEMINI_API_KEY"))
+        placeholder = "System default active" if has_system_gemini_key else "Enter Gemini API Key"
+        multimodal_gemini_key_input = st.text_input(
             "Gemini API Key",
             type="password",
-            value=os.environ.get("GEMINI_API_KEY", ""),
-            help="Provide a Google Gemini API Key to enable live multimodal analysis. If left blank, local offline heuristics will run.",
+            placeholder=placeholder,
+            help="Provide a Google Gemini API Key to enable live multimodal analysis. If left blank, the system default key (if configured) or local offline heuristics will run.",
             key="multimodal_sidebar_gem_key"
         )
+        multimodal_gemini_key = multimodal_gemini_key_input if multimodal_gemini_key_input else os.environ.get("GEMINI_API_KEY", "")
         
         if st.button("Clear Multimodal Chat History", key="multimodal_clear_mem"):
             st.session_state.multimodal_chat_history = []
@@ -1122,6 +1131,7 @@ else: # Multi-Modal Agent
                     filename = uploaded_file.name
                     
                     # 1. Run visual analysis
+                    visual_desc = None
                     if multimodal_gemini_key:
                         # Call Gemini Multimodal API to get detailed description
                         desc_prompt = (
@@ -1132,6 +1142,7 @@ else: # Multi-Modal Agent
                         )
                         visual_desc = multimodal_agent.query_gemini_multimodal(uploaded_file, desc_prompt, multimodal_gemini_key)
                         
+                    if visual_desc and not (visual_desc.startswith("Failed to contact") or visual_desc.startswith("Gemini API Error")):
                         # Set routed domain by classifying visual desc
                         desc_lower = visual_desc.lower() + " " + m_prompt.lower()
                         if any(w in desc_lower for w in ["xray", "medical", "scan", "mri", "symptom", "pneumonia", "gout", "disease", "clinical"]):
@@ -1149,6 +1160,8 @@ else: # Multi-Modal Agent
                             "detected_entities": re.findall(r'\b[a-zA-Z]{5,20}\b', m_prompt)
                         }
                     else:
+                        if visual_desc:
+                            st.warning("Google Gemini API is currently unavailable or timed out. Falling back to local offline heuristic visual analyzer.")
                         # Call local offline visual analysis heuristics
                         visual_analysis = multimodal_agent.run_local_visual_fallback(filename, props, m_prompt)
                     
@@ -1176,7 +1189,15 @@ else: # Multi-Modal Agent
                     )
                     
                     # 4. Run Factual Validation (Hallucination check)
-                    score, aligned, missing = multimodal_agent.check_factual_consistency(response, context)
+                    check_text = response
+                    if "### 💡 AI Assistant Response\n" in response:
+                        check_text = response.split("### 💡 AI Assistant Response\n", 1)[1]
+                        
+                    score, aligned, missing = multimodal_agent.check_factual_consistency(
+                        response=check_text,
+                        context=context,
+                        visual_desc=visual_analysis["description"]
+                    )
                     
                     # Add to session history
                     st.session_state.multimodal_chat_history.append({

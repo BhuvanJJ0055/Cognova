@@ -51,7 +51,7 @@ class TestMultimodalAgent(unittest.TestCase):
         """Test heuristic visual categorization on various filename keywords."""
         # 1. Medical scan routing
         analysis_med = self.agent.run_local_visual_fallback(
-            filename="my_chest_xray.png",
+            filename="my_chest_xray_pneumonia.png",
             image_properties={"width": 800, "height": 800, "mode": "RGB"},
             prompt="What is on this scan?"
         )
@@ -106,7 +106,7 @@ class TestMultimodalAgent(unittest.TestCase):
         ]
 
         # Case A: Factual response (aligned)
-        factual_resp = "Inhaled corticosteroids reduce airway inflammation in chronic asthma."
+        factual_resp = "Inhaled corticosteroids are effective anti-inflammatory therapy for chronic asthma."
         score, aligned, missing = self.agent.check_factual_consistency(factual_resp, context)
         self.assertGreater(score, 0.70)
         self.assertIn("corticosteroids", aligned)

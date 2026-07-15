@@ -17,7 +17,7 @@ from sklearn.decomposition import PCA
 
 # Import local modules
 from arxiv_loader import get_local_papers, search_arxiv_api, import_papers_to_local
-from build_arxiv_index import ArXivRetriever
+from build_arxiv_index import ArXivRetriever, CSV_PATH
 from nlp_utils import extract_concepts, summarize_text
 from llm_explainer import generate_explanation
 
@@ -160,10 +160,16 @@ with st.sidebar:
     gemini_key = ""
     
     if llm_option == "Hugging Face Inference API":
-        hf_token = st.text_input("HF API Token", type="password", help="Input Hugging Face Bearer Token")
+        has_system_hf = bool(os.environ.get("HF_API_TOKEN"))
+        placeholder = "System default active" if has_system_hf else "Enter HF API Token"
+        hf_token_input = st.text_input("HF API Token", type="password", placeholder=placeholder, help="Input Hugging Face Bearer Token")
+        hf_token = hf_token_input if hf_token_input else os.environ.get("HF_API_TOKEN", "")
         st.info("Uses Meta Llama 3 8B. If token empty, queries public endpoints (rate-limited).")
     elif llm_option == "Google Gemini API":
-        gemini_key = st.text_input("Gemini API Key", type="password", help="Input Google Gemini API Key")
+        has_system_gemini = bool(os.environ.get("GEMINI_API_KEY"))
+        placeholder = "System default active" if has_system_gemini else "Enter Gemini API Key"
+        gemini_key_input = st.text_input("Gemini API Key", type="password", placeholder=placeholder, help="Input Google Gemini API Key")
+        gemini_key = gemini_key_input if gemini_key_input else os.environ.get("GEMINI_API_KEY", "")
         
     if st.button("Clear Chat Memory"):
         st.session_state.chat_history = []

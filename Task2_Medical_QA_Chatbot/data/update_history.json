@@ -1,17 +1,5 @@
 [
     {
-        "timestamp": "2026-07-09T15:45:42.135064",
-        "trigger": "scheduler",
-        "added_count": 0,
-        "details": "Polled sources: No new records found."
-    },
-    {
-        "timestamp": "2026-07-09T15:46:42.232351",
-        "trigger": "scheduler",
-        "added_count": 0,
-        "details": "Polled sources: No new records found."
-    },
-    {
         "timestamp": "2026-07-09T15:47:42.336469",
         "trigger": "scheduler",
         "added_count": 0,
@@ -241,6 +229,372 @@
     },
     {
         "timestamp": "2026-07-14T22:22:11.511793",
+        "trigger": "scheduler",
+        "added_count": 0,
+        "details": "Polled sources: No new records found."
+    },
+    {
+        "timestamp": "2026-07-14T23:12:48.149845",
+        "trigger": "scheduler",
+        "added_count": 0,
+        "details": "Polled sources: No new records found."
+    },
+    {
+        "timestamp": "2026-07-14T23:13:48.196754",
+        "trigger": "scheduler",
+        "added_count": 0,
+        "details": "Polled sources: No new records found."
+    },
+    {
+        "timestamp": "2026-07-14T23:14:48.239846",
+        "trigger": "scheduler",
+        "added_count": 0,
+        "details": "Polled sources: No new records found."
+    },
+    {
+        "timestamp": "2026-07-14T23:15:48.271510",
+        "trigger": "scheduler",
+        "added_count": 0,
+        "details": "Polled sources: No new records found."
+    },
+    {
+        "timestamp": "2026-07-14T23:16:48.306690",
+        "trigger": "scheduler",
+        "added_count": 0,
+        "details": "Polled sources: No new records found."
+    },
+    {
+        "timestamp": "2026-07-14T23:17:48.339232",
+        "trigger": "scheduler",
+        "added_count": 0,
+        "details": "Polled sources: No new records found."
+    },
+    {
+        "timestamp": "2026-07-14T23:18:48.372909",
+        "trigger": "scheduler",
+        "added_count": 0,
+        "details": "Polled sources: No new records found."
+    },
+    {
+        "timestamp": "2026-07-14T23:19:48.405056",
+        "trigger": "scheduler",
+        "added_count": 0,
+        "details": "Polled sources: No new records found."
+    },
+    {
+        "timestamp": "2026-07-14T23:20:48.439283",
+        "trigger": "scheduler",
+        "added_count": 0,
+        "details": "Polled sources: No new records found."
+    },
+    {
+        "timestamp": "2026-07-14T23:21:48.474271",
+        "trigger": "scheduler",
+        "added_count": 0,
+        "details": "Polled sources: No new records found."
+    },
+    {
+        "timestamp": "2026-07-14T23:22:48.512168",
+        "trigger": "scheduler",
+        "added_count": 0,
+        "details": "Polled sources: No new records found."
+    },
+    {
+        "timestamp": "2026-07-14T23:23:48.547891",
+        "trigger": "scheduler",
+        "added_count": 0,
+        "details": "Polled sources: No new records found."
+    },
+    {
+        "timestamp": "2026-07-14T23:24:48.588204",
+        "trigger": "scheduler",
+        "added_count": 0,
+        "details": "Polled sources: No new records found."
+    },
+    {
+        "timestamp": "2026-07-14T23:25:48.623121",
+        "trigger": "scheduler",
+        "added_count": 0,
+        "details": "Polled sources: No new records found."
+    },
+    {
+        "timestamp": "2026-07-14T23:26:48.663057",
+        "trigger": "scheduler",
+        "added_count": 0,
+        "details": "Polled sources: No new records found."
+    },
+    {
+        "timestamp": "2026-07-14T23:27:48.705235",
+        "trigger": "scheduler",
+        "added_count": 0,
+        "details": "Polled sources: No new records found."
+    },
+    {
+        "timestamp": "2026-07-14T23:28:48.743850",
+        "trigger": "scheduler",
+        "added_count": 0,
+        "details": "Polled sources: No new records found."
+    },
+    {
+        "timestamp": "2026-07-14T23:29:48.791697",
+        "trigger": "scheduler",
+        "added_count": 0,
+        "details": "Polled sources: No new records found."
+    },
+    {
+        "timestamp": "2026-07-14T23:30:49.004523",
+        "trigger": "scheduler",
+        "added_count": 0,
+        "details": "Polled sources: No new records found."
+    },
+    {
+        "timestamp": "2026-07-14T23:31:49.457488",
+        "trigger": "scheduler",
+        "added_count": 0,
+        "details": "Polled sources: No new records found."
+    },
+    {
+        "timestamp": "2026-07-14T23:32:49.503599",
+        "trigger": "scheduler",
+        "added_count": 0,
+        "details": "Polled sources: No new records found."
+    },
+    {
+        "timestamp": "2026-07-14T23:33:49.560912",
+        "trigger": "scheduler",
+        "added_count": 0,
+        "details": "Polled sources: No new records found."
+    },
+    {
+        "timestamp": "2026-07-14T23:34:49.738812",
+        "trigger": "scheduler",
+        "added_count": 0,
+        "details": "Polled sources: No new records found."
+    },
+    {
+        "timestamp": "2026-07-14T23:35:49.812054",
+        "trigger": "scheduler",
+        "added_count": 0,
+        "details": "Polled sources: No new records found."
+    },
+    {
+        "timestamp": "2026-07-14T23:36:49.870591",
+        "trigger": "scheduler",
+        "added_count": 0,
+        "details": "Polled sources: No new records found."
+    },
+    {
+        "timestamp": "2026-07-14T23:38:00.600404",
+        "trigger": "scheduler",
+        "added_count": 0,
+        "details": "Polled sources: No new records found."
+    },
+    {
+        "timestamp": "2026-07-14T23:39:00.963409",
+        "trigger": "scheduler",
+        "added_count": 0,
+        "details": "Polled sources: No new records found."
+    },
+    {
+        "timestamp": "2026-07-14T23:40:01.017499",
+        "trigger": "scheduler",
+        "added_count": 0,
+        "details": "Polled sources: No new records found."
+    },
+    {
+        "timestamp": "2026-07-14T23:40:24.078935",
+        "trigger": "scheduler",
+        "added_count": 0,
+        "details": "Polled sources: No new records found."
+    },
+    {
+        "timestamp": "2026-07-14T23:41:24.153700",
+        "trigger": "scheduler",
+        "added_count": 0,
+        "details": "Polled sources: No new records found."
+    },
+    {
+        "timestamp": "2026-07-14T23:42:24.264682",
+        "trigger": "scheduler",
+        "added_count": 0,
+        "details": "Polled sources: No new records found."
+    },
+    {
+        "timestamp": "2026-07-14T23:43:24.302898",
+        "trigger": "scheduler",
+        "added_count": 0,
+        "details": "Polled sources: No new records found."
+    },
+    {
+        "timestamp": "2026-07-15T10:46:43.284336",
+        "trigger": "scheduler",
+        "added_count": 0,
+        "details": "Polled sources: No new records found."
+    },
+    {
+        "timestamp": "2026-07-15T10:47:43.359103",
+        "trigger": "scheduler",
+        "added_count": 0,
+        "details": "Polled sources: No new records found."
+    },
+    {
+        "timestamp": "2026-07-15T10:48:43.448188",
+        "trigger": "scheduler",
+        "added_count": 0,
+        "details": "Polled sources: No new records found."
+    },
+    {
+        "timestamp": "2026-07-15T10:49:43.483775",
+        "trigger": "scheduler",
+        "added_count": 0,
+        "details": "Polled sources: No new records found."
+    },
+    {
+        "timestamp": "2026-07-15T10:50:43.522809",
+        "trigger": "scheduler",
+        "added_count": 0,
+        "details": "Polled sources: No new records found."
+    },
+    {
+        "timestamp": "2026-07-15T10:51:43.561815",
+        "trigger": "scheduler",
+        "added_count": 0,
+        "details": "Polled sources: No new records found."
+    },
+    {
+        "timestamp": "2026-07-15T11:27:44.208237",
+        "trigger": "scheduler",
+        "added_count": 0,
+        "details": "Polled sources: No new records found."
+    },
+    {
+        "timestamp": "2026-07-15T11:28:44.249982",
+        "trigger": "scheduler",
+        "added_count": 0,
+        "details": "Polled sources: No new records found."
+    },
+    {
+        "timestamp": "2026-07-15T11:29:44.301877",
+        "trigger": "scheduler",
+        "added_count": 0,
+        "details": "Polled sources: No new records found."
+    },
+    {
+        "timestamp": "2026-07-15T11:46:42.612438",
+        "trigger": "scheduler",
+        "added_count": 0,
+        "details": "Polled sources: No new records found."
+    },
+    {
+        "timestamp": "2026-07-15T11:47:42.672281",
+        "trigger": "scheduler",
+        "added_count": 0,
+        "details": "Polled sources: No new records found."
+    },
+    {
+        "timestamp": "2026-07-15T11:48:42.725124",
+        "trigger": "scheduler",
+        "added_count": 0,
+        "details": "Polled sources: No new records found."
+    },
+    {
+        "timestamp": "2026-07-15T11:49:42.783284",
+        "trigger": "scheduler",
+        "added_count": 0,
+        "details": "Polled sources: No new records found."
+    },
+    {
+        "timestamp": "2026-07-15T11:50:42.838100",
+        "trigger": "scheduler",
+        "added_count": 0,
+        "details": "Polled sources: No new records found."
+    },
+    {
+        "timestamp": "2026-07-15T11:51:42.885503",
+        "trigger": "scheduler",
+        "added_count": 0,
+        "details": "Polled sources: No new records found."
+    },
+    {
+        "timestamp": "2026-07-15T11:52:42.946435",
+        "trigger": "scheduler",
+        "added_count": 0,
+        "details": "Polled sources: No new records found."
+    },
+    {
+        "timestamp": "2026-07-15T11:53:43.006478",
+        "trigger": "scheduler",
+        "added_count": 0,
+        "details": "Polled sources: No new records found."
+    },
+    {
+        "timestamp": "2026-07-15T11:54:43.062267",
+        "trigger": "scheduler",
+        "added_count": 0,
+        "details": "Polled sources: No new records found."
+    },
+    {
+        "timestamp": "2026-07-15T11:55:43.120363",
+        "trigger": "scheduler",
+        "added_count": 0,
+        "details": "Polled sources: No new records found."
+    },
+    {
+        "timestamp": "2026-07-15T11:56:43.263833",
+        "trigger": "scheduler",
+        "added_count": 0,
+        "details": "Polled sources: No new records found."
+    },
+    {
+        "timestamp": "2026-07-15T11:57:43.309733",
+        "trigger": "scheduler",
+        "added_count": 0,
+        "details": "Polled sources: No new records found."
+    },
+    {
+        "timestamp": "2026-07-15T11:58:43.369947",
+        "trigger": "scheduler",
+        "added_count": 0,
+        "details": "Polled sources: No new records found."
+    },
+    {
+        "timestamp": "2026-07-15T11:59:43.425185",
+        "trigger": "scheduler",
+        "added_count": 0,
+        "details": "Polled sources: No new records found."
+    },
+    {
+        "timestamp": "2026-07-15T12:00:43.473252",
+        "trigger": "scheduler",
+        "added_count": 0,
+        "details": "Polled sources: No new records found."
+    },
+    {
+        "timestamp": "2026-07-15T12:01:43.542625",
+        "trigger": "scheduler",
+        "added_count": 0,
+        "details": "Polled sources: No new records found."
+    },
+    {
+        "timestamp": "2026-07-15T12:02:43.598012",
+        "trigger": "scheduler",
+        "added_count": 0,
+        "details": "Polled sources: No new records found."
+    },
+    {
+        "timestamp": "2026-07-15T12:03:43.655171",
+        "trigger": "scheduler",
+        "added_count": 0,
+        "details": "Polled sources: No new records found."
+    },
+    {
+        "timestamp": "2026-07-15T12:04:43.711671",
+        "trigger": "scheduler",
+        "added_count": 0,
+        "details": "Polled sources: No new records found."
+    },
+    {
+        "timestamp": "2026-07-15T12:05:43.760069",
         "trigger": "scheduler",
         "added_count": 0,
         "details": "Polled sources: No new records found."

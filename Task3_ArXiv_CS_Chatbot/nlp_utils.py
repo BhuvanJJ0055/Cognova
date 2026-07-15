@@ -126,7 +126,7 @@ def summarize_text(text: str, num_sentences: int = 2) -> str:
             sentence_scores[idx] = 0
             
     # Get top scoring sentences
-    top_indices = sorted(sentence_scores, key=sentence_scores.get, reverse=True)[:num_sentences]
+    top_indices = sorted(sentence_scores, key=lambda idx: sentence_scores[idx], reverse=True)[:num_sentences]
     
     # Sort indices back in original order of appearance
     top_indices.sort()
