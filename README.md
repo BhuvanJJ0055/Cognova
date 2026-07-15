@@ -114,6 +114,7 @@ Cognova/
 * 📄 **Task 2 Report:** [Task2 Internship Report](file:///c:/Users/bhuva/Cognova/Task2_Medical_QA_Chatbot/internship_report.md)
 * 📄 **Task 3 Report:** [Task3 Internship Report](file:///c:/Users/bhuva/Cognova/Task3_ArXiv_CS_Chatbot/internship_report.md)
 * 📄 **Task 4 Report:** [Task4 Internship Report](file:///c:/Users/bhuva/Cognova/Task4_Multimodal_Assistant/internship_report.md)
+* 📄 **Task 5 Report:** [Task5 Internship Report](file:///c:/Users/bhuva/Cognova/Task5_Multilingual_Assistant/internship_report.md)
 
 ## License
 

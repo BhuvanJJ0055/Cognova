@@ -38,9 +38,13 @@ sys.path.append(os.path.join(BASE_DIR, "Task1_Sentiment_Chatbot"))
 sys.path.append(os.path.join(BASE_DIR, "Task2_Medical_QA_Chatbot"))
 sys.path.append(os.path.join(BASE_DIR, "Task3_ArXiv_CS_Chatbot"))
 sys.path.append(os.path.join(BASE_DIR, "Task4_Multimodal_Assistant"))
+sys.path.append(os.path.join(BASE_DIR, "Task5_Multilingual_Assistant"))
 
 # Import Task 4 Modules
 from Task4_Multimodal_Assistant.multimodal_agent import MultimodalAgent
+
+# Import Task 5 Modules
+from Task5_Multilingual_Assistant.multilingual_agent import MultilingualAgent
 
 # Import Task 3 Modules
 from Task3_ArXiv_CS_Chatbot.arxiv_loader import get_local_papers, search_arxiv_api, import_papers_to_local, CSV_PATH as ARXIV_CSV_PATH
@@ -214,11 +218,22 @@ if "multimodal_visual_analysis" not in st.session_state:
 if "multimodal_routing_notes" not in st.session_state:
     st.session_state.multimodal_routing_notes = ""
 
+if "multilingual_chat_history" not in st.session_state:
+    st.session_state.multilingual_chat_history = []
+
+if "multilingual_last_retrieved" not in st.session_state:
+    st.session_state.multilingual_last_retrieved = []
+
 @st.cache_resource
 def get_multimodal_agent():
     return MultimodalAgent()
 
+@st.cache_resource
+def get_multilingual_agent():
+    return MultilingualAgent()
+
 multimodal_agent = get_multimodal_agent()
+multilingual_agent = get_multilingual_agent()
 
 # Load database info dynamically (reflects background updates)
 df_stats = pd.read_csv(csv_path)
@@ -245,6 +260,8 @@ arxiv_hf_token = ""
 arxiv_gemini_key = ""
 multimodal_gemini_key = ""
 multimodal_consistency_threshold = 0.35
+multilingual_gemini_key = ""
+multilingual_consistency_threshold = 0.35
 
 retriever = get_retriever(reload_count=st.session_state.reload_count)
 recognizer = get_recognizer(reload_count=st.session_state.reload_count)
@@ -258,7 +275,7 @@ with st.sidebar:
     
     app_mode = st.radio(
         "Select Application Module:",
-        ["💬 Customer Support Agent", "⚕️ Medical Q&A Advisor", "📚 ArXiv Scientific Expert", "📸 Multi-Modal Agent"]
+        ["💬 Customer Support Agent", "⚕️ Medical Q&A Advisor", "📚 ArXiv Scientific Expert", "📸 Multi-Modal Agent", "🌐 Multilingual Assistant"]
     )
     
     st.markdown("---")
@@ -393,7 +410,7 @@ with st.sidebar:
                 st.rerun()
             except Exception as e:
                 st.error(f"Ingestion failed: {e}")
-    else:
+    elif app_mode == "📸 Multi-Modal Agent":
         st.subheader("📸 Multi-Modal Config")
         st.write("Reason across text and image inputs with agentic routing and factual verification.")
         
@@ -423,7 +440,7 @@ with st.sidebar:
             st.session_state.multimodal_routing_notes = ""
             st.session_state.multimodal_visual_analysis = {}
             st.toast("Multimodal chat history cleared!")
-
+ 
         st.markdown("---")
         st.subheader("🧪 Automated Diagnostics")
         st.write("Run the unit test suite inside the application server.")
@@ -441,6 +458,54 @@ with st.sidebar:
             result = runner.run(suite)
             
             # Display results
+            st.code(stream.getvalue())
+            if result.wasSuccessful():
+                st.success("All tests passed successfully!")
+            else:
+                st.error(f"Test suite failed with {len(result.failures)} failures and {len(result.errors)} errors.")
+
+    elif app_mode == "🌐 Multilingual Assistant":
+        st.subheader("🌐 Multilingual Config")
+        st.write("Converse in English, Hindi, or Kannada. The agent maintains continuity and consistency.")
+        
+        multilingual_consistency_threshold = st.slider(
+            "Multilingual Factual Consistency Cutoff",
+            min_value=0.0,
+            max_value=1.0,
+            value=0.35,
+            step=0.05,
+            help="Threshold for validation check of the English-translated version of the response."
+        )
+
+        has_system_gemini_key = bool(os.environ.get("GEMINI_API_KEY"))
+        placeholder = "System default active" if has_system_gemini_key else "Enter Gemini API Key"
+        multilingual_gemini_key_input = st.text_input(
+            "Gemini API Key",
+            type="password",
+            placeholder=placeholder,
+            help="Provide a Google Gemini API Key. Used for translation and response generation.",
+            key="multilingual_sidebar_gem_key"
+        )
+        multilingual_gemini_key = multilingual_gemini_key_input if multilingual_gemini_key_input else os.environ.get("GEMINI_API_KEY", "")
+
+        if st.button("Clear Multilingual Chat History", key="multilingual_clear_mem"):
+            st.session_state.multilingual_chat_history = []
+            st.session_state.multilingual_last_retrieved = []
+            st.toast("Multilingual chat history cleared!")
+            
+        st.markdown("---")
+        st.subheader("🧪 Automated Diagnostics")
+        st.write("Run the unit test suite inside the application server.")
+        if st.button("Run Multilingual Unit Tests", key="multilingual_run_tests_btn"):
+            import unittest
+            from Task5_Multilingual_Assistant.test_multilingual import TestMultilingualAgent
+            
+            suite = unittest.TestLoader().loadTestsFromTestCase(TestMultilingualAgent)
+            from io import StringIO
+            stream = StringIO()
+            runner = unittest.TextTestRunner(stream=stream, verbosity=2)
+            result = runner.run(suite)
+            
             st.code(stream.getvalue())
             if result.wasSuccessful():
                 st.success("All tests passed successfully!")
@@ -984,7 +1049,7 @@ elif app_mode == "📚 ArXiv Scientific Expert":
         else:
             st.warning("Retriever index not loaded. Cannot run PCA visualization.")
 
-else: # Multi-Modal Agent
+elif app_mode == "📸 Multi-Modal Agent":
     st.markdown("""
     <div style="background-color: rgba(15, 32, 39, 0.05); border-left: 5px solid #0f2027; padding: 1rem; border-radius: 8px; margin-bottom: 1.5rem;">
         <h5 style="color: #0f2027; margin: 0; font-weight: bold;">📸 Multi-Modal AI Assistant Instructions</h5>
@@ -1214,5 +1279,188 @@ else: # Multi-Modal Agent
                         "missing_keywords": missing
                     })
                     
+                    st.rerun()
+
+else: # Multilingual Assistant
+    st.markdown("""
+    <div style="background-color: rgba(9, 30, 66, 0.05); border-left: 5px solid #0052cc; padding: 1rem; border-radius: 8px; margin-bottom: 1.5rem;">
+        <h5 style="color: #0052cc; margin: 0; font-weight: bold;">🌐 Multilingual Conversational Assistant (Task 5)</h5>
+        <p style="margin: 0.5rem 0 0 0; color: #2d3748; font-size: 0.95rem;">
+            Ask health symptoms, treatment procedures, or computer science paper explanations in <b>English, Hindi, or Kannada</b>.
+            The assistant automatically identifies your language, parses code-switched/mixed inputs, resolves ambiguities,
+            and responds in your target language while verifying facts.
+        </p>
+    </div>
+    """, unsafe_allow_html=True)
+
+    col_config, col_chat = st.columns([1, 2])
+
+    with col_config:
+        st.subheader("⚙️ Routing & Domain Index")
+        target_domain = st.selectbox(
+            "Select target knowledge index:",
+            ["Medical Q&A (NIH MedQuAD)", "Scientific Papers (ArXiv CS)"]
+        )
+
+        st.markdown("---")
+        st.write("**Conversational Continuity Guidelines:**")
+        st.caption("- Switch languages mid-chat (e.g. ask in Hindi, follow up in Kannada).")
+        st.caption("- Query with mixed languages (e.g. 'nange chest pain ide').")
+        st.caption("- Pronoun references are automatically resolved based on chat history context.")
+
+    with col_chat:
+        st.subheader("💬 Multi-turn Chat")
+
+        # Display history
+        for idx, chat in enumerate(st.session_state.multilingual_chat_history):
+            # User message
+            lang_lbl = chat['lang_info'].get('primary_language', 'en').upper()
+            is_mixed_str = " (Mixed/Code-Switched)" if chat['lang_info'].get('is_mixed') else ""
+            st.markdown(f"""
+            <div class="message-container user-msg">
+                <b>User:</b> "{chat['prompt']}" <br>
+                <small style="color: #718096;">Language detected: <b>{lang_lbl}{is_mixed_str}</b> | Translated Query: <i>"{chat['translated_query']}"</i></small>
+            </div>
+            """, unsafe_allow_html=True)
+
+            # Assistant response
+            st.markdown(f"""
+            <div class="message-container assistant-msg">
+                <b>AI Assistant:</b><br>
+                {chat['response']}
+            </div>
+            """, unsafe_allow_html=True)
+
+            # Factual check banner (if context retrieved)
+            if chat['context']:
+                score_pct = int(chat['consistency_score'] * 100)
+                if chat['consistency_score'] >= 0.70:
+                    banner_color = "rgba(16, 185, 129, 0.1)"
+                    border_color = "#10b981"
+                    text_color = "#064e3b"
+                    status_lbl = "✅ High Factual Consistency"
+                elif chat['consistency_score'] >= 0.35:
+                    banner_color = "rgba(245, 158, 11, 0.1)"
+                    border_color = "#f59e0b"
+                    text_color = "#78350f"
+                    status_lbl = "⚠️ Moderate Factual Consistency"
+                else:
+                    banner_color = "rgba(239, 68, 68, 0.1)"
+                    border_color = "#ef4444"
+                    text_color = "#7f1d1d"
+                    status_lbl = "🚨 Low Factual Consistency (Hallucination Warning)"
+
+                st.markdown(f"""
+                <div style="background-color: {banner_color}; border: 1px solid {border_color}; border-radius: 8px; padding: 1rem; margin-bottom: 1rem; color: {text_color};">
+                    <h6 style="margin: 0; font-weight: bold; color: {border_color};">{status_lbl} - Score: {score_pct}%</h6>
+                    <p style="margin: 0.25rem 0 0 0; font-size: 0.8rem;">Calculated using overlap check on response English translation: <i>"{chat['response_english']}"</i></p>
+                    <p style="margin: 0.5rem 0 0 0; font-size: 0.85rem; line-height: 1.4;">
+                        <b>Aligned Terms:</b> {", ".join(chat['aligned_keywords']) if chat['aligned_keywords'] else 'None'}<br>
+                        <span style="color: #ef4444;"><b>Unsupported Terms:</b> {", ".join(chat['missing_keywords']) if chat['missing_keywords'] else 'None'}</span>
+                    </p>
+                </div>
+                """, unsafe_allow_html=True)
+
+                with st.expander("📚 View Factual Evidence Documents", expanded=False):
+                    for r_idx, ref in enumerate(chat['context']):
+                        st.markdown(f"**Document [{r_idx+1}]**: {ref['title']}")
+                        st.write(ref["text"])
+                        st.caption(f"Source: {ref['source']}")
+                        st.markdown("---")
+
+        # Chat Input Form
+        st.write("---")
+        ml_prompt = st.text_input(
+            "Type a query in English, Hindi, or Kannada (or mixed):",
+            placeholder="e.g. nange asthma treatment baggeda heli (or) मुझे सांस लेने में तकलीफ हो रही है",
+            key="multilingual_user_prompt_input"
+        )
+
+        if st.button("Send Message", type="primary", key="multilingual_send_btn"):
+            if not ml_prompt:
+                st.error("Please enter a question.")
+            else:
+                with st.spinner("Analyzing language and fetching references..."):
+                    # Initialize
+                    multilingual_agent.initialize_retrievers(csv_path)
+
+                    # 1. Detect and translate query
+                    key = multilingual_gemini_key if multilingual_gemini_key else os.environ.get("GEMINI_API_KEY", "")
+                    if not key:
+                        st.error("API Key not found. Please specify your Gemini API Key in the config sidebar.")
+                        st.stop()
+
+                    lang_info = multilingual_agent.detect_and_translate(
+                        prompt=ml_prompt,
+                        chat_history=st.session_state.multilingual_chat_history,
+                        api_key=key
+                    )
+
+                    # 2. Check ambiguity
+                    if lang_info.get("is_ambiguous", False) and lang_info.get("clarification_question"):
+                        # If query is too vague, prompt user for clarification directly
+                        st.session_state.multilingual_chat_history.append({
+                            "prompt": ml_prompt,
+                            "lang_info": lang_info,
+                            "translated_query": lang_info.get("translated_query", ml_prompt),
+                            "response": lang_info.get("clarification_question"),
+                            "response_english": "Clarification prompt requested.",
+                            "consistency_score": 1.0,
+                            "aligned_keywords": [],
+                            "missing_keywords": [],
+                            "context": []
+                        })
+                        st.rerun()
+
+                    # 3. Retrieve Context
+                    context_docs = []
+                    eng_query = lang_info.get("translated_query", ml_prompt)
+                    
+                    if "Medical" in target_domain:
+                        hits = multilingual_agent.medical_retriever.retrieve(eng_query, threshold=0.10, top_k=2)
+                        for h in hits:
+                            context_docs.append({
+                                "title": f"Focus: {h['focus']} ({h['question_type']})",
+                                "text": h["answer"],
+                                "source": "NIH MedQuAD"
+                            })
+                    else:
+                        hits = multilingual_agent.arxiv_retriever.retrieve(eng_query, threshold=0.05, top_k=2)
+                        for h in hits:
+                            context_docs.append({
+                                "title": h["title"],
+                                "text": h["summary"],
+                                "source": f"ArXiv CS ({h['primary_category']})"
+                            })
+
+                    # 4. Generate grounded multi-lingual response
+                    result = multilingual_agent.generate_response(
+                        user_prompt=ml_prompt,
+                        translated_query=eng_query,
+                        lang_info=lang_info,
+                        context_docs=context_docs,
+                        chat_history=st.session_state.multilingual_chat_history,
+                        api_key=key
+                    )
+
+                    # 5. Run Consistency Check
+                    score, aligned, missing = multilingual_agent.check_factual_consistency(
+                        response_english=result.get("response_english", ""),
+                        context_docs=context_docs
+                    )
+
+                    # 6. Save history
+                    st.session_state.multilingual_chat_history.append({
+                        "prompt": ml_prompt,
+                        "lang_info": lang_info,
+                        "translated_query": eng_query,
+                        "response": result.get("response"),
+                        "response_english": result.get("response_english"),
+                        "consistency_score": score,
+                        "aligned_keywords": aligned,
+                        "missing_keywords": missing,
+                        "context": context_docs
+                    })
+
                     st.rerun()
 
