@@ -1,0 +1,10 @@
+{
+    "sync_interval_seconds": 60,
+    "scheduler_active": true,
+    "sources": [
+        {
+            "type": "folder",
+            "path": "data/incoming_docs"
+        }
+    ]
+}

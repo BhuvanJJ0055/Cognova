@@ -1,0 +1,22 @@
+===================================================================
+Cognova GenAI Platform - Frequently Asked Questions (FAQ)
+===================================================================
+
+1. What is Cognova?
+Cognova is an enterprise-grade, multi-page GenAI assistant ecosystem.
+It integrates sentiment-aware customer support, medical Q&A with MedQuAD,
+ArXiv computer science research paper summarization, multimodal image/document analysis,
+and multilingual natural language translation.
+
+2. How does Medical Q&A work?
+The Medical Q&A module uses TF-IDF retrieval over MedQuAD datasets combined with
+rule-based medical entity recognition (detecting diseases, symptoms, and treatments).
+If an upset user is detected, empathetic de-escalation is automatically applied.
+
+3. How does ArXiv Expert paper retrieval work?
+ArXiv Expert connects to both live ArXiv APIs and local TF-IDF paper indices to extract
+key concepts, summarize research papers, and generate structured explanations.
+
+4. Can I add custom documents to the Knowledge Base?
+Yes! Simply place raw text or CSV files inside the data/incoming_docs/ folder or use
+the interactive Knowledge Base Updater UI on the Medical Q&A page.

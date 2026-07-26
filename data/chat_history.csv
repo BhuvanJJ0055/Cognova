@@ -1,0 +1,6 @@
+time,message,mood,compound_score,intent,reply
+2026-07-26T19:57:27,My order is completely broken and this is terrible service!,upset,-0.777,complaint,I am sorry to hear that. Could you share your order ID so I can resolve this immediately?
+2026-07-26T19:59:10,"Thank you so much, your app is awesome and I love it!",happy,0.902,compliment,Thank you so much for the kind feedback! We are thrilled to help.
+2026-07-26T19:59:49,"""What is your standard return policy?""",calm,0.0,other,Thank you for reaching out. How can I assist you further?
+2026-07-26T20:16:56,"Thank you so much, your app is awesome and I love it!",happy,0.902,appreciation_feedback,Thank you so much for your glowing feedback! 🌟 We're thrilled that you love our app. Is there anything specific you'd like to explore or need assistance with today?
+2026-07-26T20:17:17,Can you please help me? My payment was deducted twice,happy,0.612,appreciation_feedback,Thank you so much for your glowing feedback! 🌟 We're thrilled that you love our app. Is there anything specific you'd like to explore or need assistance with today?

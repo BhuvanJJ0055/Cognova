@@ -1,126 +1,126 @@
-# Cognova
+# Cognova - Multi-Agent GenAI Platform
 
-An AI assistant that actually pays attention to *how* you're asking, not just *what* you're asking.
+**Author**: Bhuvan J J  
+**Repository**: `genai-chatbot-internship` / `Cognova`  
 
-Most chatbots pick one trick and stick with it — either they answer questions from a knowledge base, or they detect sentiment, or they handle multiple languages. Cognova tries to do all of it at once, in the same conversation, without losing track of context when things change mid-chat.
+Cognova is an enterprise-grade, multi-page Generative AI ecosystem integrating Sentiment Analysis, MedQuAD Medical Retrieval Q&A, ArXiv CS Research Assistant, Multimodal Vision Processing, and Multilingual Translation.
 
-This started as a set of internship tasks (sentiment detection, medical Q&A, dynamic knowledge updates, domain expertise, multi-modal reasoning, multilingual support) that I decided to build as one connected system instead of six separate scripts.
+---
 
-## What it does
-
-- **Reads the room.** Detects whether you sound frustrated, happy, or neutral, and adjusts its response tone accordingly.
-- **Knows its stuff.** Answers domain-specific questions using retrieval — right now that's medical Q&A (via MedQuAD) and research paper explanations (via arXiv), but the retrieval layer is built to plug into any dataset.
-- **Keeps learning.** New information gets pulled in and embedded on a schedule, so the knowledge base doesn't go stale the day after you deploy it.
-- **Understands images too.** You can show it something, not just tell it something, and it'll reason across both.
-- **Switches languages without losing the plot.** Start a conversation in English, drop into Hindi halfway through, and it keeps the context intact instead of resetting.
-
-## How it's put together
+## 📁 Project Structure
 
 ```
-Input (text / image / language detection)
-        ↓
-Understanding (sentiment + entity/intent recognition)
-        ↓
-Knowledge layer (vector DB + scheduled re-ingestion)
-        ↓
-Generation (open-source LLM, language-aware output)
+genai-chatbot-internship/
+├── README.md                          ✅ System documentation
+├── requirements.txt                   ✅ Dependencies list
+├── .gitignore                         ✅ Version control rules
+├── app.py                             ✅ Main Streamlit hub entry point
+├── pages/
+│   ├── 1_Medical_QA.py                ✅ Medical Q&A Advisor & KB updater
+│   ├── 2_ArXiv_Expert.py              ✅ ArXiv Research Assistant & paper summarizer
+│   ├── 3_Multimodal_Assistant.py      ✅ Vision & Document Analysis UI
+│   └── 4_Multilingual_Chat.py         ✅ Multilingual translation & chat UI
+├── src/
+│   ├── __init__.py                    ✅ Source package init
+│   ├── core/
+│   │   ├── __init__.py                ✅ Core package init
+│   │   └── rag_pipeline.py            ✅ Reusable TF-IDF & Cosine Similarity RAG engine
+│   └── modules/
+│       ├── __init__.py                ✅ Modules package init
+│       ├── sentiment.py               ✅ VADER & ML Sentiment Classifier
+│       ├── medical_qa.py              ✅ MedQuAD retriever & Medical NER
+│       ├── kb_updater.py              ✅ Knowledge base auto-updater
+│       ├── arxiv_expert.py            ✅ ArXiv API & paper indexing module
+│       └── multilingual.py            ✅ Multi-language parser & code-switcher
+├── scripts/
+│   └── build_general_index.py         ✅ CLI index building script
+├── data/
+│   ├── general_docs/
+│   │   └── sample_faq.txt             ✅ Sample FAQ text data
+│   ├── kb_sources.json                ✅ KB source configuration
+│   ├── incoming_docs/
+│   │   └── README.txt                 ✅ Dynamic ingestion instructions
+│   ├── medquad/                       ❌ Raw MedQuAD dataset (Git ignored)
+│   ├── arxiv/                         ❌ Raw ArXiv dataset (Git ignored)
+│   ├── general_kb_index/              ❌ Generated general index (Git ignored)
+│   ├── medquad_index/                 ❌ Generated medical index (Git ignored)
+│   └── arxiv_index/                   ❌ Generated ArXiv index (Git ignored)
+├── reports/
+│   ├── Internship_Report.md           ✅ Master internship report
+│   └── screenshots/                   ✅ Evidence images
+│       ├── task1_sentiment_negative.png
+│       ├── task1_sentiment_positive.png
+│       ├── task2_medical_qa.png
+│       ├── task4_arxiv_search.png
+│       ├── task5_multimodal.png
+│       └── task6_multilingual.png
+└── venv/                              ❌ Local virtual environment (Git ignored)
 ```
 
-Nothing exotic here — it's mostly about getting these pieces to share one consistent state instead of running in isolation.
+---
 
-## Stack
+## ⚙️ Installation & Setup
 
-- **UI:** Streamlit
-- **Vector store:** FAISS / ChromaDB
-- **LLM:** open-source (Llama / Mistral, swappable)
-- **Sentiment:** transformer-based classifier
-- **Language detection:** langdetect / fastText
-- **Orchestration:** LangChain
-
-None of this is locked in — swap any piece out as needed.
-
-## Project Layout
-
-```
-Cognova/
-├── Task1_Sentiment_Chatbot/    # Task 1: Sentiment-Aware Customer Support Agent
-│   ├── data/                   # Sentiment training datasets
-│   ├── chatbot_v2.py           # Core logic for VADER & Logistic Regression classifier
-│   ├── test_accuracy.py        # Model validation and metrics
-│   ├── internship_report.md    # Task 1 Internship Report
-│   └── README.md               # Task 1 setup & methodology
-├── Task2_Medical_QA_Chatbot/   # Task 2: MedQuAD-based Medical Advisor
-│   ├── data/                   # MedQuAD datasets & serialized retriever indices
-│   ├── data_loader.py          # Automatic NIH XML corpus downloader & parser
-│   ├── build_index.py          # TF-IDF & Cosine Similarity search engine
-│   ├── entity_recognition.py   # Regex-based medical entity tagging (symptoms, etc.)
-│   ├── data_processor.py       # Data formatting and index build script
-│   ├── test_entities.py        # NER tagger unit assertions
-│   ├── test_pipeline.py        # Semantic retrieval unit assertions
-│   ├── internship_report.md    # Task 2 Internship Report
-│   └── README.md               # Task 2 setup & methodology
-├── Task3_ArXiv_CS_Chatbot/     # Task 3: ArXiv Scientific Paper Expert Advisor
-│   ├── data/                   # ArXiv CS database & serialized retriever index
-│   ├── arxiv_loader.py         # Local loading & live API search/fetch
-│   ├── build_arxiv_index.py    # TF-IDF Cosine Similarity retriever
-│   ├── nlp_utils.py            # Extractive summarizer and Regex NER tagger
-│   ├── llm_explainer.py        # LLM connector & offline fallback synthesis
-│   ├── app.py                  # Standalone ArXiv advisor dashboard
-│   ├── test_arxiv_pipeline.py  # Scientific retrieval & extraction tests
-│   ├── internship_report.md    # Task 3 Internship Report
-│   └── README.md               # Task 3 setup & methodology
-├── Task4_Multimodal_Assistant/ # Task 4: Multi-Modal AI Assistant with Routing & Validation
-│   ├── multimodal_agent.py     # Ingestion, routing, ambiguity handling, and validation logic
-│   ├── test_multimodal.py      # Automated unit tests for multimodal assistant
-│   └── internship_report.md    # Task 4 Internship Report
-├── app.py                      # Root Streamlit Application (Unified Hub)
-├── requirements.txt            # Root dependencies
-├── pyrefly.toml                # Project settings
-└── README.md                   # This root documentation
-```
-
-## Running it Locally
-
-1. **Clone the repository:**
+1. **Clone the repository**:
    ```bash
-   git clone https://github.com/BhuvanJJ0055/Cognova.git
-   cd Cognova
+   git clone <repository_url>
+   cd genai-chatbot-internship
    ```
 
-2. **Install dependencies:**
+2. **Create and activate a Virtual Environment**:
+   ```bash
+   python -m venv venv
+   # On Windows:
+   .\venv\Scripts\activate
+   # On macOS/Linux:
+   source venv/bin/activate
+   ```
+
+3. **Install Dependencies**:
    ```bash
    pip install -r requirements.txt
    ```
 
-3. **Initialize the Datasets & Build Indexes:**
-   To prepare the indices and run the test suites:
-   * **Medical Q&A (Task 2)**:
-     ```bash
-     python Task2_Medical_QA_Chatbot/data_processor.py
-     ```
-   * **ArXiv CS Chatbot (Task 3)**:
-     ```bash
-     python Task3_ArXiv_CS_Chatbot/test_arxiv_pipeline.py
-     ```
-
-4. **Launch the Unified Streamlit App:**
-   ```bash
-   streamlit run app.py
+4. **Set Environment Variables**:
+   Create a `.env` file in the root directory:
+   ```env
+   GEMINI_API_KEY=your_google_gemini_api_key_here
    ```
 
-## Internship Reports & Deliverables
+---
 
-* 📄 **Task 1 Report:** [Task1 Internship Report](file:///c:/Users/bhuva/Cognova/Task1_Sentiment_Chatbot/internship_report.md)
-* 📄 **Task 2 Report:** [Task2 Internship Report](file:///c:/Users/bhuva/Cognova/Task2_Medical_QA_Chatbot/internship_report.md)
-* 📄 **Task 3 Report:** [Task3 Internship Report](file:///c:/Users/bhuva/Cognova/Task3_ArXiv_CS_Chatbot/internship_report.md)
-* 📄 **Task 4 Report:** [Task4 Internship Report](file:///c:/Users/bhuva/Cognova/Task4_Multimodal_Assistant/internship_report.md)
-* 📄 **Task 5 Report:** [Task5 Internship Report](file:///c:/Users/bhuva/Cognova/Task5_Multilingual_Assistant/internship_report.md)
+## 🚀 Running the Application
 
-## License
+Launch the Streamlit web hub:
+```bash
+streamlit run app.py
+```
 
-MIT — use it, break it, learn from it.
+### CLI Script Execution
+To build or rebuild the general knowledge base index manually:
+```bash
+python scripts/build_general_index.py
+```
 
-## Author
+---
 
-Bhuvan J J
+## 🌟 Modules & Features
 
+1. **Medical Q&A Advisor (`pages/1_Medical_QA.py`)**:
+   - MedQuAD TF-IDF retrieval.
+   - Medical Entity Recognition for Diseases, Symptoms, and Treatments.
+   - Empathetic de-escalation for distressed/upset users.
+   - Knowledge Base updater.
+
+2. **ArXiv Expert (`pages/2_ArXiv_Expert.py`)**:
+   - Live ArXiv API & local paper indexing.
+   - Key concept extraction & paper summarizer.
+   - LLM paper explanation generation.
+
+3. **Multimodal Assistant (`pages/3_Multimodal_Assistant.py`)**:
+   - Image & technical diagram inspection.
+   - Gemini 1.5 Flash vision processing.
+
+4. **Multilingual Chat (`pages/4_Multilingual_Chat.py`)**:
+   - Supports English, Hindi, Kannada, and code-switched text (Hinglish/Kanglish).
+   - Dynamic translation & cross-lingual RAG retrieval.
