@@ -1,8 +1,8 @@
 """
-Cognova Unified Hub - app.py (Root Streamlit Application & Base Sentiment Chatbot)
+Cognova GenAI Platform - Main Application Entry Point
 Author: Bhuvan J J
 
-This is the main entry point for Cognova and houses Task 1: Sentiment-Aware Support Chatbot.
+Renders Sentiment Support Chatbot interface and platform architecture overview.
 """
 
 import sys
@@ -13,44 +13,48 @@ BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 if BASE_DIR not in sys.path:
     sys.path.append(BASE_DIR)
 
-# Import Task 1 Sentiment Module
-try:
-    from src.modules.sentiment import SupportChatbot, score_mood_vader, tag_intent
-except ImportError:
-    from modules.sentiment import SupportChatbot, score_mood_vader, tag_intent
+from src.modules.sentiment import SupportChatbot, tag_intent, score_mood_vader
 
 st.set_page_config(
     page_title="Cognova AI Ecosystem",
     page_icon="🤖",
-    layout="wide",
-    initial_sidebar_state="expanded"
+    layout="wide"
 )
 
 st.markdown("""
 <style>
-    @import url('https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600;700&display=swap');
-    html, body, [class*="css"] {
-        font-family: 'Outfit', sans-serif;
+    .stApp {
+        background-color: #0f172a;
+        color: #f8fafc;
     }
     .cognova-header {
-        background: linear-gradient(135deg, #0f2027 0%, #203a43 50%, #2c5364 100%);
+        background: linear-gradient(135deg, #1e293b 0%, #0f172a 100%);
+        border: 1px solid #334155;
         padding: 2rem;
-        border-radius: 16px;
-        color: white;
+        border-radius: 12px;
+        margin-bottom: 2rem;
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
         text-align: center;
-        margin-bottom: 1.5rem;
-        box-shadow: 0 4px 20px rgba(0,0,0,0.1);
-        border: 1px solid rgba(255, 255, 255, 0.05);
+    }
+    .cognova-header h1 {
+        color: #38bdf8;
+        font-weight: 700;
+        font-size: 2.3rem;
+        margin-bottom: 0.5rem;
+    }
+    .cognova-header p {
+        color: #94a3b8;
+        font-size: 1.05rem;
     }
     .sentiment-badge-happy {
-        background-color: #059669;
+        background-color: #10b981;
         color: white;
         padding: 4px 12px;
         border-radius: 12px;
         font-weight: 600;
     }
     .sentiment-badge-upset {
-        background-color: #dc2626;
+        background-color: #ef4444;
         color: white;
         padding: 4px 12px;
         border-radius: 12px;
@@ -68,8 +72,8 @@ st.markdown("""
 
 st.markdown("""
 <div class="cognova-header">
-    <h1>🤖 Cognova GenAI Assistant Platform</h1>
-    <p>Unified Enterprise Ecosystem • Task 1 Sentiment Support • RAG Retrieval • Multimodal • Multilingual</p>
+    <h1>🤖 Cognova GenAI Platform</h1>
+    <p>Enterprise AI Ecosystem • Sentiment Chatbot • Medical QA • ArXiv Expert • Multimodal • Multilingual</p>
 </div>
 """, unsafe_allow_html=True)
 
@@ -85,7 +89,7 @@ def get_bot():
 
 bot = get_bot()
 
-tab1, tab2 = st.tabs(["💬 Task 1: Sentiment Support Chatbot", "📊 Platform Architecture & Modules"])
+tab1, tab2 = st.tabs(["💬 Sentiment Support Chatbot", "📊 Platform Architecture & Modules"])
 
 with tab1:
     st.subheader("💬 Interactive Customer Support Chatbot")
@@ -134,15 +138,15 @@ with tab2:
     with col1:
         st.markdown("""
         <div style='background-color:#1e293b; padding:1.2rem; border-radius:10px; margin-bottom:1rem; border:1px solid #334155; color:white;'>
-            <h4>💬 Task 1. Sentiment-Aware Support Agent</h4>
-            <p>VADER + ML sentiment classifier, plain question neutral override, intent tagging, and adaptive reply synthesis.</p>
+            <h4>💬 Sentiment Support Chatbot</h4>
+            <p>VADER + ML sentiment classifier, plain question neutral override, 7 intent categories, and adaptive reply synthesis.</p>
         </div>
         <div style='background-color:#1e293b; padding:1.2rem; border-radius:10px; margin-bottom:1rem; border:1px solid #334155; color:white;'>
-            <h4>🩺 Task 2. Medical Q&A Advisor (Page 1)</h4>
+            <h4>🩺 Medical QA Advisor</h4>
             <p>MedQuAD TF-IDF retrieval, medical entity recognition (diseases, symptoms, treatments), and empathetic sentiment de-escalation.</p>
         </div>
         <div style='background-color:#1e293b; padding:1.2rem; border-radius:10px; margin-bottom:1rem; border:1px solid #334155; color:white;'>
-            <h4>🔄 Task 3. Dynamic Knowledge Base Expansion</h4>
+            <h4>🔄 Dynamic Knowledge Base Expansion</h4>
             <p>Incoming document watcher, MD5 hash deduplication, and RAG index updating without server restarts.</p>
         </div>
         """, unsafe_allow_html=True)
@@ -150,15 +154,15 @@ with tab2:
     with col2:
         st.markdown("""
         <div style='background-color:#1e293b; padding:1.2rem; border-radius:10px; margin-bottom:1rem; border:1px solid #334155; color:white;'>
-            <h4>📚 Task 4. ArXiv CS Expert Assistant (Page 2)</h4>
+            <h4>📚 ArXiv Research Expert</h4>
             <p>Semantic research paper search, live ArXiv API integration, key AI concept extraction, paper summarization, and LLM explanations.</p>
         </div>
         <div style='background-color:#1e293b; padding:1.2rem; border-radius:10px; margin-bottom:1rem; border:1px solid #334155; color:white;'>
-            <h4>👁️ Task 5. Multimodal Vision Assistant (Page 3)</h4>
+            <h4>👁️ Multimodal Vision Assistant</h4>
             <p>Gemini Vision processing for architecture diagrams, technical charts, document OCR, and visual Q&A inspection.</p>
         </div>
         <div style='background-color:#1e293b; padding:1.2rem; border-radius:10px; margin-bottom:1rem; border:1px solid #334155; color:white;'>
-            <h4>🌐 Task 6. Multilingual Chat Assistant (Page 4)</h4>
+            <h4>🌐 Multilingual Chat Assistant</h4>
             <p>Auto-language detection, code-switching support (Hinglish/Kanglish), prompt translation, and cross-lingual RAG querying.</p>
         </div>
         """, unsafe_allow_html=True)
