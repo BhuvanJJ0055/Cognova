@@ -56,14 +56,14 @@ if st.button("Search & Explain Research Papers", type="primary"):
     if query.strip():
         with st.spinner("Searching CS papers and synthesizing explanation..."):
             if search_mode == "Local Semantic CS Index":
-                papers = retriever.retrieve(query, top_k=4)
+                papers = retriever.retrieve(query, top_k=4, category=cat_code)
             else:
                 try:
                     papers = search_arxiv_api(query, max_results=4, category=cat_code)
                 except Exception:
                     papers = search_arxiv_api(query, max_results=4)
                 if not papers:
-                    papers = retriever.retrieve(query, top_k=4)
+                    papers = retriever.retrieve(query, top_k=4, category=cat_code)
 
             if papers:
                 st.success(f"Found {len(papers)} matching Computer Science research papers:")

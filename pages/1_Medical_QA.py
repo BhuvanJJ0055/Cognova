@@ -12,6 +12,8 @@ BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 if BASE_DIR not in sys.path:
     sys.path.append(BASE_DIR)
 
+DATA_DIR = os.path.join(BASE_DIR, "data")
+
 try:
     from src.modules.medical_qa import MedicalRetriever, MedicalEntityRecognizer
     from src.modules.sentiment import score_mood_vader
@@ -89,13 +91,18 @@ def extract_entities_live(text: str) -> dict:
     }
 
 
+@st.cache_resource
 def get_medical_retriever():
     retriever = MedicalRetriever()
     if not retriever.rag.metadata or len(retriever.rag.metadata) < 50:
         retriever.build_from_medquad_subfolder()
     return retriever
 
-updater = KnowledgeUpdater()
+@st.cache_resource
+def get_knowledge_updater():
+    return KnowledgeUpdater()
+
+updater = get_knowledge_updater()
 
 tab1, tab2 = st.tabs(["💬 Ask Medical Question", "🔄 Knowledge Base Management"])
 
@@ -156,22 +163,80 @@ with tab1:
             st.error("Please enter a valid question.")
 
 with tab2:
-    st.subheader("Add Custom Q&A Pair to Knowledge Base")
-    with st.form("add_qa_form"):
-        q_input = st.text_input("Question", value="What is the treatment for Dengue Fever?")
-        a_input = st.text_area("Answer", value="Dengue Fever treatment focuses on supportive care, hydration, fluid replacement, pain relievers like acetaminophen, and avoiding NSAIDs like aspirin or ibuprofen.")
-        focus_input = st.text_input("Focus Area", value="Dengue Fever")
-        qtype_input = st.text_input("Question Type", value="treatment")
-        submitted = st.form_submit_button("Add to Knowledge Base")
-        
-        if submitted:
-            if q_input.strip() and a_input.strip():
-                # Update both KnowledgeUpdater and current retriever instance
-                updater.add_qa_pair(q_input, a_input, focus_input, qtype_input)
+    st.subheader("⚙️ Dynamic Knowledge Base Management")
+    st.markdown("Expand the chatbot's vector store dynamically via custom Q&A entries, automated document ingestion, or background periodic synchronization.")
+
+    sub_tab1, sub_tab2, sub_tab3 = st.tabs(["📝 Add Custom Q&A", "📁 Ingest Document Files", "🔄 Background Scheduler"])
+
+    # 1. Custom Q&A Ingestion
+    with sub_tab1:
+        st.markdown("#### Add Direct Q&A Pair to Vector Database")
+        with st.form("add_qa_form"):
+            q_input = st.text_input("Question", value="What is the treatment for Dengue Fever?")
+            a_input = st.text_area("Answer", value="Dengue Fever treatment focuses on supportive care, hydration, fluid replacement, pain relievers like acetaminophen, and avoiding NSAIDs like aspirin or ibuprofen.")
+            focus_input = st.text_input("Focus Area", value="Dengue Fever")
+            qtype_input = st.selectbox("Question Type", ["treatment", "symptoms", "causes", "information"], index=0)
+            submitted = st.form_submit_button("➕ Add to Vector Index", type="primary")
+            
+            if submitted:
+                if q_input.strip() and a_input.strip():
+                    retriever = get_medical_retriever()
+                    updater.add_qa_pair(
+                        q_input, a_input, focus_input, qtype_input,
+                        target_rag=retriever.rag
+                    )
+                    st.success(f"✅ Successfully added Q&A pair for **{focus_input}**! Index updated & saved to disk. Search Tab 1 now.")
+                else:
+                    st.error("Both Question and Answer fields are required.")
+
+    # 2. File Upload & Directory Scanner
+    with sub_tab2:
+        st.markdown("#### Ingest External Documents (`data/incoming_docs/`)")
+        st.info("Upload `.txt`, `.csv`, `.json`, or `.md` files below. Content will be hashed (MD5) to prevent duplicate ingestion.")
+
+        uploaded_files = st.file_uploader("Upload Medical Guideline / Research Files", type=["txt", "csv", "json", "md"], accept_multiple_files=True)
+        if uploaded_files:
+            inc_dir = os.path.join(DATA_DIR, "incoming_docs")
+            os.makedirs(inc_dir, exist_ok=True)
+            saved_count = 0
+            for uf in uploaded_files:
+                save_path = os.path.join(inc_dir, uf.name)
+                with open(save_path, "wb") as f:
+                    f.write(uf.getbuffer())
+                saved_count += 1
+            st.success(f"Saved {saved_count} file(s) to `data/incoming_docs/`.")
+
+        col_scan1, col_scan2 = st.columns([2, 1])
+        with col_scan1:
+            st.markdown(f"**Target Directory**: `data/incoming_docs/`")
+        with col_scan2:
+            if st.button("🚀 Ingest & Update Index", type="secondary"):
                 retriever = get_medical_retriever()
-                retriever.rag.add_texts([f"Question: {q_input}\nAnswer: {a_input}"], metadata=[{
-                    "question": q_input, "answer": a_input, "focus": focus_input, "question_type": qtype_input
-                }])
-                st.success("Successfully added Q&A pair! Knowledge Base updated. You can now search for this condition in Tab 1.")
-            else:
-                st.error("Both Question and Answer fields are required.")
+                added_records = updater.scan_and_update(target_rag=retriever.rag)
+                if added_records > 0:
+                    st.success(f"🎉 Dynamically expanded vector store with **{added_records}** new items!")
+                else:
+                    st.info("No new or unhashed files found in `data/incoming_docs/`.")
+
+    # 3. Background Scheduler Control
+    with sub_tab3:
+        st.markdown("#### Periodic Background Sync Scheduler")
+        st.caption("Runs a background daemon thread that periodically scans configured sources and auto-expands the vector database.")
+
+        status_str = "🟢 Active (Auto-syncing every 30s)" if updater.is_running() else "🔴 Inactive"
+        st.markdown(f"**Scheduler Status**: {status_str}")
+        st.markdown(f"**Last Scan Timestamp**: `{updater.last_scan_time or 'Never'}`")
+        st.markdown(f"**Total Records Added**: `{updater.total_records_added}`")
+
+        c_start, c_stop = st.columns(2)
+        with c_start:
+            if st.button("▶️ Start Background Auto-Sync"):
+                retriever = get_medical_retriever()
+                updater.start_periodic_updater(interval_seconds=30, target_rag=retriever.rag)
+                st.success("Started background periodic sync thread (Interval: 30s).")
+                st.rerun()
+        with c_stop:
+            if st.button("⏹️ Stop Background Auto-Sync"):
+                updater.stop_periodic_updater()
+                st.warning("Stopped background periodic sync scheduler.")
+                st.rerun()

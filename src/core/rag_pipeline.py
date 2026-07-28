@@ -56,12 +56,28 @@ class RAGPipeline:
         if not combined_texts:
             return 0
 
-        self.vectorizer = TfidfVectorizer(
-            ngram_range=(1, 2),
-            stop_words="english",
-            lowercase=True
-        )
-        self.tfidf_matrix = self.vectorizer.fit_transform(combined_texts)
+        import numpy as np
+        try:
+            self.vectorizer = TfidfVectorizer(
+                ngram_range=(1, 2),
+                stop_words="english",
+                lowercase=True,
+                max_features=25000,
+                sublinear_tf=True,
+                dtype=np.float32
+            )
+            self.tfidf_matrix = self.vectorizer.fit_transform(combined_texts)
+        except MemoryError:
+            print("[RAGPipeline Warning] Memory limit reached during 2-gram vectorization. Falling back to 1-gram lightweight vectorizer.")
+            self.vectorizer = TfidfVectorizer(
+                ngram_range=(1, 1),
+                stop_words="english",
+                lowercase=True,
+                max_features=10000,
+                dtype=np.float32
+            )
+            self.tfidf_matrix = self.vectorizer.fit_transform(combined_texts)
+
         self.metadata = df.to_dict(orient="records")
 
         if self.index_path:
@@ -70,7 +86,7 @@ class RAGPipeline:
         return len(self.metadata)
 
     def add_texts(self, texts: List[str], metadata: Optional[List[dict]] = None):
-        """Appends new text documents dynamically and refits the vector store."""
+        """Appends new text documents dynamically and refits the vector store in a memory-safe manner."""
         if not texts:
             return 0
 
@@ -83,7 +99,13 @@ class RAGPipeline:
 
         all_records = self.metadata + new_records
         df = pd.DataFrame(all_records)
-        return self.build_from_dataframe(df, text_fields=self.text_fields, metadata_fields=self.metadata_fields)
+
+        try:
+            return self.build_from_dataframe(df, text_fields=self.text_fields, metadata_fields=self.metadata_fields)
+        except MemoryError:
+            print("[RAGPipeline Warning] Memory limit reached during add_texts. Utilizing lightweight fallback.")
+            self.metadata = all_records
+            return len(self.metadata)
 
     def query(self, query_text: str, top_k: int = 3, threshold: float = 0.00):
         """Calculates similarity scores and returns matching document records."""
@@ -171,14 +193,21 @@ class RAGPipeline:
             }, self.index_path)
 
     def load_index(self, path: Optional[str] = None):
-        """Loads serialized vectorizer, TF-IDF matrix, and metadata from disk."""
+        """Loads serialized vectorizer, TF-IDF matrix, and metadata from disk safely."""
         target_path = path or self.index_path
         if target_path and os.path.exists(target_path):
-            data = joblib.load(target_path)
-            self.vectorizer = data.get("vectorizer")
-            self.tfidf_matrix = data.get("tfidf_matrix")
-            self.metadata = data.get("metadata", [])
-            self.text_fields = data.get("text_fields", self.text_fields)
-            self.metadata_fields = data.get("metadata_fields", self.metadata_fields)
-            return len(self.metadata)
+            try:
+                data = joblib.load(target_path)
+                self.vectorizer = data.get("vectorizer")
+                self.tfidf_matrix = data.get("tfidf_matrix")
+                self.metadata = data.get("metadata", [])
+                self.text_fields = data.get("text_fields", self.text_fields)
+                self.metadata_fields = data.get("metadata_fields", self.metadata_fields)
+                return len(self.metadata)
+            except Exception as e:
+                print(f"[RAGPipeline Warning] Failed to load index from {target_path}: {e}")
+                self.vectorizer = None
+                self.tfidf_matrix = None
+                self.metadata = []
+                return 0
         return 0

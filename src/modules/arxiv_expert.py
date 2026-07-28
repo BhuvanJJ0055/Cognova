@@ -77,6 +77,23 @@ class ArXivExpert:
             except Exception:
                 pass
 
+        # Check for pre-built CSV fallback if raw JSONL snapshot not parsed
+        if not papers:
+            csv_candidates = [
+                self.fallback_csv_path,
+                os.path.join(BASE_DIR, "ArXiv_CS_Chatbot", "data", "arxiv_cs_papers.csv"),
+                os.path.join(DATA_DIR, "arxiv_cs_papers.csv")
+            ]
+            for csv_path in csv_candidates:
+                if csv_path and os.path.exists(csv_path):
+                    try:
+                        df_csv = pd.read_csv(csv_path)
+                        if not df_csv.empty:
+                            papers = df_csv.to_dict(orient="records")
+                            break
+                    except Exception:
+                        pass
+
         if not papers:
             # Baseline seminal computer science research dataset
             papers = [
@@ -126,6 +143,15 @@ class ArXivExpert:
                     "url": "https://arxiv.org/abs/1512.03385"
                 },
                 {
+                    "id": "2010.11929",
+                    "title": "An Image is Worth 16x16 Words: Transformers for Image Recognition at Scale (ViT)",
+                    "authors": "Alexey Dosovitskiy et al.",
+                    "summary": "While the Transformer architecture has become the de facto standard for NLP, applications to computer vision remain limited. We show that a pure transformer applied directly to sequences of image patches performs very well on image classification tasks.",
+                    "published": "2020-10-22",
+                    "primary_category": "cs.CV",
+                    "url": "https://arxiv.org/abs/2010.11929"
+                },
+                {
                     "id": "1406.2661",
                     "title": "Generative Adversarial Nets (GANs)",
                     "authors": "Ian J. Goodfellow et al.",
@@ -133,6 +159,15 @@ class ArXivExpert:
                     "published": "2014-06-10",
                     "primary_category": "cs.LG",
                     "url": "https://arxiv.org/abs/1406.2661"
+                },
+                {
+                    "id": "2201.11903",
+                    "title": "Chain-of-Thought Prompting Elicits Reasoning in Large Language Models",
+                    "authors": "Jason Wei, Xuezhi Wang, Dale Schuurmans, Maarten Bosma, Ed Chi, Quoc Le, Denny Zhou",
+                    "summary": "We explore how generating a series of intermediate reasoning steps significantly improves the ability of large language models to perform complex reasoning tasks.",
+                    "published": "2022-01-28",
+                    "primary_category": "cs.AI",
+                    "url": "https://arxiv.org/abs/2201.11903"
                 }
             ]
 
@@ -143,22 +178,34 @@ class ArXivExpert:
             metadata_fields=["id", "title", "authors", "summary", "published", "primary_category", "url"]
         )
 
-    def retrieve(self, query: str, top_k: int = 4, threshold: float = 0.00) -> list:
-        """Retrieves matching computer science papers."""
-        results = self.rag.query(query, top_k=top_k, threshold=0.00)
+    def retrieve(self, query: str, top_k: int = 4, threshold: float = 0.00, category: Optional[str] = None) -> list:
+        """Retrieves matching computer science papers with optional category filtering."""
+        results = self.rag.query(query, top_k=max(top_k * 3, 10), threshold=0.00)
         formatted = []
         for res in results:
+            cat = res.get("primary_category", "cs.AI")
+            score = res.get("score", 0.0)
+
+            # Boost if category matches requested category filter
+            if category and category != "cs.*":
+                if cat.lower() == category.lower():
+                    score += 0.25
+                elif not cat.lower().startswith(category.lower()[:4]):
+                    score -= 0.15
+
             formatted.append({
                 "id": res.get("id", ""),
                 "title": res.get("title", ""),
                 "authors": res.get("authors", ""),
                 "summary": res.get("summary", ""),
                 "published": res.get("published", ""),
-                "primary_category": res.get("primary_category", "cs.AI"),
+                "primary_category": cat,
                 "url": res.get("url", ""),
-                "similarity": res.get("score", 0.0)
+                "similarity": min(max(score, 0.0), 0.99)
             })
-        return formatted
+
+        formatted = sorted(formatted, key=lambda x: x["similarity"], reverse=True)
+        return formatted[:top_k]
 
 
 class ArXivRetriever(ArXivExpert):
