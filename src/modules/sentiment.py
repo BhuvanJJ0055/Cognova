@@ -41,7 +41,8 @@ POLITENESS_MARKERS = {
 HAPPY_LEXICON = {
     "awesome", "great", "excellent", "wonderful", "amazing", "fantastic",
     "brilliant", "love", "loved", "superb", "perfect", "delighted", "happy",
-    "impressed", "kudos", "best", "thank you", "thanks", "thank"
+    "impressed", "kudos", "best", "thank you", "thanks", "thank", "enjoy",
+    "enjoyed", "delightful", "helpful", "satisfied", "glad", "good"
 }
 
 PROBLEM_DISTRESS_LEXICON = {
@@ -50,16 +51,20 @@ PROBLEM_DISTRESS_LEXICON = {
     "debit", "overcharged", "twice", "double", "scam", "useless", "terrible",
     "horrible", "worst", "awful", "frustrated", "angry", "upset", "refund",
     "reimburse", "disappointed", "stolen", "lost", "slow", "freeze", "freezing",
-    "issue", "problem", "not working", "cannot open", "cant open", "unable"
+    "issue", "problem", "not working", "cannot open", "cant open", "unable",
+    "bad", "late", "poor", "annoyed", "hate", "ruined", "sucks", "wrong",
+    "unacceptable", "frustrating", "faulty", "unusable"
 }
 
 
 def sanitize_politeness(text: str) -> str:
-    """Removes politeness markers to prevent masking of underlying distress or complaints."""
-    lowered = text.lower()
-    for marker in POLITENESS_MARKERS:
-        lowered = lowered.replace(marker, "")
-    return lowered.strip()
+    """Removes politeness markers using word-boundary regex to prevent masking of underlying distress while protecting words like 'displeased'."""
+    sanitized = text
+    sorted_markers = sorted(POLITENESS_MARKERS, key=len, reverse=True)
+    for marker in sorted_markers:
+        pattern = r'\b' + re.escape(marker) + r'\b'
+        sanitized = re.sub(pattern, "", sanitized, flags=re.IGNORECASE)
+    return re.sub(r'\s+', ' ', sanitized).strip()
 
 
 def _looks_like_plain_question(text: str) -> bool:
@@ -99,9 +104,9 @@ def is_weak_answer(answer: str, prompt_instruction: str) -> bool:
 def score_mood_vader(message: str, scorer: Optional[SentimentIntensityAnalyzer] = None) -> Tuple[str, float]:
     """
     Universal Dual-Layer Sentiment Scorer:
-    - Strips politeness markers before evaluation.
+    - Strips politeness markers before evaluation without destroying words.
     - Applies neutral override for plain informational questions.
-    - Applies problem override if message contains distress/issue lexicons.
+    - Overrides VADER compound score when strong problem distress or praise indicators exist.
     """
     if _looks_like_plain_question(message):
         return "calm", 0.0
@@ -116,16 +121,26 @@ def score_mood_vader(message: str, scorer: Optional[SentimentIntensityAnalyzer] 
     compound = result["compound"]
 
     words = set(re.findall(r'\b\w+\b', message.lower()))
+    distress_matches = words.intersection(PROBLEM_DISTRESS_LEXICON)
+    happy_matches = words.intersection(HAPPY_LEXICON)
 
-    # Problem/Distress Rule Override: If problem keywords exist, sentiment cannot be happy
-    if words.intersection(PROBLEM_DISTRESS_LEXICON) or any(p in message.lower() for p in ["deducted", "charged", "not working", "broken", "issue"]):
+    # Strong distress keywords force upset classification
+    strong_distress_words = {
+        "broken", "failed", "crash", "crashed", "error", "bug", "scam", "useless",
+        "terrible", "horrible", "worst", "awful", "frustrated", "angry", "upset",
+        "refund", "reimburse", "disappointed", "stolen", "overcharged", "bad",
+        "hate", "ruined", "sucks", "unacceptable", "frustrating"
+    }
+    has_strong_distress = bool(words.intersection(strong_distress_words))
+
+    if has_strong_distress or (distress_matches and compound <= 0.0):
         if compound <= 0.30:
             return "upset", min(compound, -0.35)
         else:
             return "calm", 0.0
 
     # Happy Lexicon Override
-    if words.intersection(HAPPY_LEXICON) and compound >= 0.15:
+    if happy_matches and not distress_matches and compound >= 0.05:
         return "happy", max(compound, 0.50)
 
     if compound <= NEGATIVE_CUTOFF:
@@ -154,7 +169,7 @@ def tag_intent(message: str, mood: str = "calm", *args, **kwargs) -> str:
     # Category 1: Financial & Refunds (Payment, billing, deductions, cards, invoices)
     financial_patterns = [
         "refund", "money back", "reimburse", "return my money", "chargeback",
-        "billing", "deducted", "deduction", "charged", "charging", "debited",
+        "billing", "deducted", "deduction", "charged", "charging", "charge", "debited",
         "debit", "overcharged", "twice", "double charge", "invoice", "receipt",
         "payment", "paid", "transaction", "fee", "cost"
     ]
@@ -238,8 +253,9 @@ class SupportChatbot:
         mood, compound = self.score_mood(message)
         intent = tag_intent(message, mood=mood)
 
-        # Universal Sentiment & Intent Adaptive Response Matrix
+        # Universal 21-Pair Sentiment & Intent Adaptive Response Matrix
         response_matrix: Dict[Tuple[str, str], str] = {
+            # HAPPY MOOD (7 INTENTS)
             ("happy", "appreciation_feedback"): (
                 "Thank you so much for your glowing feedback! 🌟 We're thrilled to hear about your great experience with our platform. "
                 "Is there anything else we can assist you with today?"
@@ -247,6 +263,23 @@ class SupportChatbot:
             ("happy", "product_inquiry"): (
                 "We're glad you're enjoying our platform! 🚀 Regarding your feature question: please let us know what specific configuration or usage detail you'd like to explore."
             ),
+            ("happy", "greeting_salutation"): (
+                "Hello and welcome! 😊 We're super happy to have you here today. How can we make your day even better?"
+            ),
+            ("happy", "financial_refund"): (
+                "Glad to help with your account details! 💳 Please share your transaction or account ID so we can quickly finalize your billing request."
+            ),
+            ("happy", "logistics_tracking"): (
+                "Excited for your order to arrive! 📦 Please provide your order ID or tracking number, and I will fetch the real-time shipping status."
+            ),
+            ("happy", "service_complaint"): (
+                "Thank you for your positive attitude! 🛠️ Let's get any minor glitch resolved for you right away. Please tell us what needs fixing."
+            ),
+            ("happy", "general_query"): (
+                "We love your positive energy! 💫 How can we best assist you with your request today?"
+            ),
+
+            # UPSET MOOD (7 INTENTS)
             ("upset", "financial_refund"): (
                 "I am deeply sorry for any billing or payment concern! 💳 "
                 "Your financial inquiry has been flagged as high-priority. Please provide your transaction ID or registered account email so our billing team can process your resolution immediately."
@@ -259,6 +292,20 @@ class SupportChatbot:
                 "I apologize for the delay or concern with your shipment! 📦 "
                 "Please share your tracking or order ID so we can escalate your package delivery immediately."
             ),
+            ("upset", "greeting_salutation"): (
+                "Hello! I can tell you're frustrated, and I am here to make things right. 🤝 Please tell me what issue you are facing so I can help immediately."
+            ),
+            ("upset", "product_inquiry"): (
+                "I'm sorry to hear that you're running into difficulties with our system. 🛠️ Let me help you navigate this—what feature or setting are you trying to use?"
+            ),
+            ("upset", "appreciation_feedback"): (
+                "We hear your concern and apologize that your experience hasn't met expectations. 🙏 Please let us know how we can fix this for you."
+            ),
+            ("upset", "general_query"): (
+                "I apologize for the trouble you are experiencing. 😔 How can our support team assist in resolving your concern today?"
+            ),
+
+            # CALM MOOD (7 INTENTS)
             ("calm", "financial_refund"): (
                 "I understand you have a question regarding billing or payment. 💳 "
                 "Please share your order ID or reference number, and I will look up your payment details."
@@ -271,6 +318,12 @@ class SupportChatbot:
             ),
             ("calm", "greeting_salutation"): (
                 "Hello! Welcome to Cognova Assistant Platform. 👋 How can I help you today?"
+            ),
+            ("calm", "service_complaint"): (
+                "Thank you for reporting this issue. 🛠️ Please share any error messages or details so our technical team can investigate."
+            ),
+            ("calm", "appreciation_feedback"): (
+                "Thank you for your feedback! 😊 We appreciate your communication. Is there anything else we can help with?"
             ),
             ("calm", "general_query"): (
                 "Thank you for reaching out to customer support. ℹ️ How can I assist you with your request today?"

@@ -37,10 +37,11 @@ def summarize_paper_text(text: str, max_sentences: int = 3) -> str:
 class ArXivExpert:
     """ArXiv CS research assistant powered by RAGPipeline."""
 
-    def __init__(self, index_path=INDEX_PATH, max_papers=1500, category_prefix="cs."):
+    def __init__(self, index_path=INDEX_PATH, max_papers=1500, category_prefix="cs.", fallback_csv_path=None):
         self.index_path = index_path
         self.max_papers = max_papers
         self.category_prefix = category_prefix
+        self.fallback_csv_path = fallback_csv_path
         self.rag = RAGPipeline(
             index_path=index_path,
             text_fields=["title", "summary"],

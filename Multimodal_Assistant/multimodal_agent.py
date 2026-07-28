@@ -31,10 +31,21 @@ for task_dir in ["Task1_Sentiment_Chatbot", "Task2_Medical_QA_Chatbot", "Task3_A
         sys.path.append(full_path)
 
 # Domain Retrievers & Bots
-from Task1_Sentiment_Chatbot.chatbot_v2 import SupportChatbot, tag_intent
-from Task2_Medical_QA_Chatbot.build_index import MedicalRetriever
-from Task3_ArXiv_CS_Chatbot.build_arxiv_index import ArXivRetriever
-from Task3_ArXiv_CS_Chatbot.nlp_utils import extract_concepts
+try:
+    from src.modules.sentiment import SupportChatbot, tag_intent
+except ImportError:
+    from Sentiment_Chatbot.chatbot_v2 import SupportChatbot, tag_intent
+
+try:
+    from src.modules.medical_qa import MedicalRetriever
+except ImportError:
+    from Medical_QA_Chatbot.build_index import MedicalRetriever
+
+try:
+    from src.modules.arxiv_expert import ArXivRetriever, extract_concepts
+except ImportError:
+    from ArXiv_CS_Chatbot.build_arxiv_index import ArXivRetriever
+    from ArXiv_CS_Chatbot.nlp_utils import extract_concepts
 
 class MultimodalAgent:
     """Orchestrates image analysis, domain routing, evidence retrieval, generation, and verification."""
@@ -50,17 +61,23 @@ class MultimodalAgent:
     @property
     def medical_retriever(self):
         if self._medical_retriever is None:
-            from Task2_Medical_QA_Chatbot.build_index import INDEX_SAVE_PATH, DEFAULT_CSV_PATH
-            csv_path = self.medical_csv or DEFAULT_CSV_PATH
-            self._medical_retriever = MedicalRetriever(index_path=INDEX_SAVE_PATH, fallback_csv_path=csv_path)
+            try:
+                from Medical_QA_Chatbot.build_index import INDEX_SAVE_PATH, DEFAULT_CSV_PATH
+                csv_path = self.medical_csv or DEFAULT_CSV_PATH
+                self._medical_retriever = MedicalRetriever(index_path=INDEX_SAVE_PATH, fallback_csv_path=csv_path)
+            except Exception:
+                self._medical_retriever = MedicalRetriever(fallback_csv_path=self.medical_csv)
         return self._medical_retriever
 
     @property
     def arxiv_retriever(self):
         if self._arxiv_retriever is None:
-            from Task3_ArXiv_CS_Chatbot.build_arxiv_index import INDEX_PATH, CSV_PATH
-            csv_path = self.arxiv_csv or CSV_PATH
-            self._arxiv_retriever = ArXivRetriever(index_path=INDEX_PATH, fallback_csv_path=csv_path)
+            try:
+                from ArXiv_CS_Chatbot.build_arxiv_index import INDEX_PATH, CSV_PATH
+                csv_path = self.arxiv_csv or CSV_PATH
+                self._arxiv_retriever = ArXivRetriever(index_path=INDEX_PATH, fallback_csv_path=csv_path)
+            except Exception:
+                self._arxiv_retriever = ArXivRetriever(fallback_csv_path=self.arxiv_csv)
         return self._arxiv_retriever
 
     @property

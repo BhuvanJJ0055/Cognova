@@ -7,14 +7,25 @@ import sys
 # Add parent path and task directories to allow cross-task imports
 parent_dir = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 sys.path.append(parent_dir)
-sys.path.append(os.path.join(parent_dir, "Task1_Sentiment_Chatbot"))
-sys.path.append(os.path.join(parent_dir, "Task2_Medical_QA_Chatbot"))
-sys.path.append(os.path.join(parent_dir, "Task3_ArXiv_CS_Chatbot"))
-sys.path.append(os.path.join(parent_dir, "Task4_Multimodal_Assistant"))
+sys.path.append(os.path.join(parent_dir, "Sentiment_Chatbot"))
+sys.path.append(os.path.join(parent_dir, "Medical_QA_Chatbot"))
+sys.path.append(os.path.join(parent_dir, "ArXiv_CS_Chatbot"))
+sys.path.append(os.path.join(parent_dir, "Multimodal_Assistant"))
 
-from Task2_Medical_QA_Chatbot.build_index import MedicalRetriever
-from Task3_ArXiv_CS_Chatbot.build_arxiv_index import ArXivRetriever
-from Task1_Sentiment_Chatbot.chatbot_v2 import SupportChatbot, score_mood_vader
+try:
+    from src.modules.medical_qa import MedicalRetriever
+except ImportError:
+    from Medical_QA_Chatbot.build_index import MedicalRetriever
+
+try:
+    from src.modules.arxiv_expert import ArXivRetriever
+except ImportError:
+    from ArXiv_CS_Chatbot.build_arxiv_index import ArXivRetriever
+
+try:
+    from src.modules.sentiment import SupportChatbot, score_mood_vader
+except ImportError:
+    from Sentiment_Chatbot.chatbot_v2 import SupportChatbot, score_mood_vader
 
 class MultilingualAgent:
     """Manages language detection, mixed-language parsing, cross-lingual context maintenance,

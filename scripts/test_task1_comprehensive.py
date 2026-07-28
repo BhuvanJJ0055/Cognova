@@ -106,6 +106,26 @@ def run_universal_test_suite():
             "prompt": "Hello! Good morning chatbot.",
             "expected_sentiment": "calm",
             "expected_intent": "greeting_salutation"
+        },
+
+        # --- EDGE CASE & PM BUG FIX TESTS ---
+        {
+            "category": "Politeness Preservation",
+            "prompt": "I am very displeased with this service quality.",
+            "expected_sentiment": "upset",
+            "expected_intent": "service_complaint"
+        },
+        {
+            "category": "Negative Question Sentiment",
+            "prompt": "Why is your service so bad and unacceptable?",
+            "expected_sentiment": "upset",
+            "expected_intent": "service_complaint"
+        },
+        {
+            "category": "Calm Setup Inquiry with Issue",
+            "prompt": "Where can I find documentation regarding the setup issue?",
+            "expected_sentiment": "calm",
+            "expected_intent": "product_inquiry"
         }
     ]
 
@@ -136,6 +156,20 @@ def run_universal_test_suite():
     print("\n" + "="*85)
     print(f"🎯 EVALUATION SUMMARY: Passed {passed_count}/{len(test_prompts)} Universal Scenarios")
     print("="*85 + "\n")
+
+    # Verify cross-module imports
+    print("🔍 VERIFYING CROSS-MODULE AGENT IMPORTS...")
+    try:
+        from Multimodal_Assistant.multimodal_agent import MultimodalAgent
+        print("  ✅ MultimodalAgent import: OK")
+    except Exception as e:
+        print(f"  ❌ MultimodalAgent import failed: {e}")
+
+    try:
+        from Multilingual_Assistant.multilingual_agent import MultilingualAgent
+        print("  ✅ MultilingualAgent import: OK")
+    except Exception as e:
+        print(f"  ❌ MultilingualAgent import failed: {e}")
 
 if __name__ == "__main__":
     run_universal_test_suite()

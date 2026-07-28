@@ -125,8 +125,9 @@ class MedicalEntityRecognizer:
 class MedicalRetriever:
     """MedQuAD retriever using subfolder indexing capability and RAGPipeline core."""
 
-    def __init__(self, index_path=INDEX_PATH):
+    def __init__(self, index_path=INDEX_PATH, fallback_csv_path=None):
         self.index_path = index_path
+        self.fallback_csv_path = fallback_csv_path
         self.rag = RAGPipeline(
             index_path=index_path,
             text_fields=["question", "focus"],
