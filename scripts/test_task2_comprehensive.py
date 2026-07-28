@@ -1,9 +1,9 @@
 """
-Task 2 Comprehensive Medical Q&A & NER Evaluation Suite
+Task 2 MedQuAD Medical Q&A Comprehensive Test Suite
 Author: Bhuvan J J
 
-Executes 10 diverse medical test cases across Symptoms, Treatments, Diseases,
-and Sensitive/Distressed queries to validate Task 2 against requirements.
+Validates MedQuAD XML dataset parsing, multi-disease vector retrieval,
+word-boundary Medical NER, and safety disclaimer integration.
 """
 
 import sys
@@ -13,90 +13,74 @@ BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 if BASE_DIR not in sys.path:
     sys.path.append(BASE_DIR)
 
-from src.modules.medical_qa import MedicalRetriever, MedicalEntityRecognizer
-from src.modules.sentiment import score_mood_vader
+from src.modules.medical_qa import MedicalRetriever, MedicalEntityRecognizer, MEDICAL_DISCLAIMER
 
-def run_task2_comprehensive_suite():
-    retriever = MedicalRetriever()
+def run_task2_test_suite():
+    print("\n" + "="*85)
+    print("🩺 TASK 2: MEDQUAD MEDICAL Q&A & NER COMPREHENSIVE TEST SUITE 🩺")
+    print("="*85)
+
+    # 1. Test Entity Recognition Precision
+    print("\n🔍 1. Testing Medical Entity Recognizer Word-Boundary Precision...")
     recognizer = MedicalEntityRecognizer()
 
     test_queries = [
-        {
-            "category": "DISEASE SYMPTOMS",
-            "query": "What are the symptoms of Type 2 Diabetes?",
-            "expected_disease": "type 2 diabetes"
-        },
-        {
-            "category": "TREATMENT & MEDICATION",
-            "query": "What treatments are used for Asthma?",
-            "expected_disease": "asthma"
-        },
-        {
-            "category": "SENSITIVE & DISTRESSED QUERY",
-            "query": "I am feeling extremely anxious and have severe chest pain. What is happening?",
-            "expected_symptom": "chest pain"
-        },
-        {
-            "category": "DISEASE SYMPTOMS",
-            "query": "What are the early signs and symptoms of Cancer?",
-            "expected_disease": "cancer"
-        },
-        {
-            "category": "TREATMENT & THERAPY",
-            "query": "What medications or therapies are prescribed for Hypertension?",
-            "expected_disease": "hypertension"
-        },
-        {
-            "category": "INFECTIOUS DISEASE",
-            "query": "What are the common symptoms of Influenza flu?",
-            "expected_disease": "flu"
-        },
-        {
-            "category": "CHRONIC CONDITION",
-            "query": "What treatments are recommended for Lupus?",
-            "expected_disease": "lupus"
-        },
-        {
-            "category": "GENERAL HEALTH FAQ",
-            "query": "How is Celiac Disease diagnosed and managed?",
-            "expected_disease": "celiac disease"
-        }
+        ("What are the symptoms of type 2 diabetes?", ["diabetes", "type 2 diabetes"], ["symptoms"], []),
+        ("How is dengue fever treated with hydration?", ["dengue", "dengue fever"], [], ["treatment"]),
+        ("I have flu and fever, do I need antibiotics?", ["flu"], ["fever"], ["antibiotic", "antibiotics"]),
+        ("Fluid in lungs during pneumonia", ["pneumonia"], [], [])  # "fluid" should NOT trigger "flu"
     ]
 
-    print("\n" + "="*85)
-    print("🩺 TASK 2: MEDICAL Q&A & ENTITY RECOGNITION EVALUATION SUITE")
-    print("="*85)
+    for q, exp_diseases, exp_symptoms, exp_treatments in test_queries:
+        res = recognizer.extract_entities(q)
+        print(f"\n 📥 Input: \"{q}\"")
+        print(f"  -> Diseases: {res['diseases']}")
+        print(f"  -> Symptoms: {res['symptoms']}")
+        print(f"  -> Treatments: {res['treatments']}")
 
-    for idx, test in enumerate(test_queries, 1):
-        query = test["query"]
-        mood, score = score_mood_vader(query)
-        
-        # 1. Retrieval
+        # Verify precision (flu vs fluid)
+        if "fluid" in q and "flu" not in q.split():
+            assert "flu" not in res["diseases"], "FAILED: 'flu' incorrectly matched inside 'fluid'!"
+
+    print("\n✅ Entity Recognition Precision: PASS")
+
+    # 2. Test Retrieval Mechanism
+    print("\n📚 2. Testing Medical Retrieval Engine across Multiple Conditions...")
+    retriever = MedicalRetriever()
+
+    medical_queries = [
+        "tell the symptoms about the HIV AIDS",
+        "mention the symptons of dengue",
+        "What is the recommended treatment for Dengue Fever?",
+        "I want a fever suggest me some tabletes",
+        "What are the symptoms of Cancer?",
+        "What is the treatment for Type 2 Diabetes?",
+        "How to treat Dengue Fever?",
+        "What medications treat Hypertension?"
+    ]
+
+    for query in medical_queries:
         results = retriever.retrieve(query, top_k=2)
-        combined_text = query + " " + " ".join([r['answer'] for r in results])
-        
-        # 2. Entity recognition
-        entities = recognizer.extract_entities(combined_text)
-
-        print(f"\nTest #{idx:02d} [{test['category']}]")
-        print(f" 📥 Input Query: \"{query}\"")
-        if mood == "upset":
-            print(f" 💙 Empathetic De-escalation Triggered (Mood: UPSET)")
-        print(f" 🩺 Diseases Detected  : {entities['diseases']}")
-        print(f" 🤒 Symptoms Detected  : {entities['symptoms']}")
-        print(f" 💊 Treatments Detected: {entities['treatments']}")
-
+        print(f"\n 📥 Query: \"{query}\"")
         if results:
-            top_match = results[0]
-            print(f" 🎯 Top Match ({top_match['similarity']*100:.1f}%): {top_match['question']}")
-            print(f" 🏷️ Focus Area: `{top_match['focus']}` | Category: `{top_match['question_type']}`")
-            print(f" 💡 Answer Preview: {top_match['answer'][:140]}...")
+            top = results[0]
+            print(f"  -> Top Match: [{top['focus']}] {top['question']} (Match: {top['similarity']*100:.1f}%)")
+            print(f"  -> Answer snippet: {top['answer'][:120]}...")
+            if "fever" in query.lower() and "tabletes" in query.lower():
+                assert top['focus'].lower() != "cancer", f"FAILED: Fever tablet query returned Cancer instead of Fever! Got {top['focus']}"
+                assert top['focus'].lower() in ["fever", "dengue fever"], f"FAILED: Expected Fever focus, got {top['focus']}"
         else:
-            print(" ℹ️ No match found.")
+            print("  ⚠️ No direct match returned.")
+
+    # 3. Test Answer Generation & Disclaimer
+    print("\n⚠️ 3. Testing Answer Generator & Safety Disclaimer...")
+    response = retriever.answer_question("What are the early signs of Diabetes?")
+    assert "Medical Disclaimer" in response["answer"], "FAILED: Medical Disclaimer missing from response!"
+    print("  ✅ Answer generation & disclaimer insertion: PASS")
 
     print("\n" + "="*85)
-    print("✨ ALL MEDICAL TEST SUITES EVALUATED SUCCESSFULLY ✨")
+    print("🎯 TASK 2 EVALUATION SUMMARY: All MedQuAD & NER Tests PASSED")
     print("="*85 + "\n")
 
 if __name__ == "__main__":
-    run_task2_comprehensive_suite()
+    run_task2_test_suite()

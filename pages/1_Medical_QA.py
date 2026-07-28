@@ -31,10 +31,13 @@ st.markdown("""
 """, unsafe_allow_html=True)
 
 # Comprehensive Lexicons for Live Page Entity Recognition
+# Comprehensive Lexicons for Live Page Entity Recognition
 DISEASE_LEXICON = [
+    "hiv aids", "hiv/aids", "hiv", "aids", "human immunodeficiency virus", "acquired immunodeficiency syndrome",
     "type 2 diabetes", "type 1 diabetes", "diabetes", "dengue fever", "dengue", "asthma", "lupus",
     "influenza", "flu", "hypertension", "high blood pressure", "cancer", "breast cancer",
-    "prostate cancer", "depression", "arthritis", "hepatitis", "allergy", "migraine", "pneumonia", "stroke"
+    "prostate cancer", "depression", "arthritis", "hepatitis", "allergy", "migraine", "pneumonia", "stroke",
+    "tuberculosis", "malaria", "covid", "covid-19", "kidney disease", "heart disease"
 ]
 
 SYMPTOM_LEXICON = [
@@ -43,25 +46,32 @@ SYMPTOM_LEXICON = [
     "runny nose", "joint pain", "muscle pain", "thirst", "urination", "fatigue", "sores",
     "fever", "cough", "wheezing", "pain", "tiredness", "weakness", "headache", "dizziness",
     "nausea", "vomiting", "rash", "itching", "swelling", "stiffness", "insomnia",
-    "early signs", "early sign", "signs", "sign", "symptoms", "symptom", "infections", "chills"
+    "night sweats", "swollen lymph nodes", "mouth ulcers", "chills", "infections",
+    "early signs", "early sign", "signs", "sign", "symptoms", "symptom", "symptons", "symtoms"
 ]
 
 TREATMENT_LEXICON = [
     "lifestyle modifications", "physical activity", "blood sugar monitoring",
     "diabetes medications", "insulin therapy", "rescue inhalers", "inhaled corticosteroids",
-    "metformin", "insulin", "albuterol", "corticosteroids", "medication", "medications",
-    "therapy", "surgery", "vaccine", "antibiotic", "inhaler", "treatment", "treatments"
+    "antiretroviral therapy", "antiretrovirals", "art",
+    "metformin", "insulin", "albuterol", "corticosteroids", "medication", "medications", "meds",
+    "therapy", "surgery", "vaccine", "antibiotic", "inhaler", "treatment", "treatments", "treament", "tablets", "tablet", "tabletes"
 ]
+
+META_INTENT_WORDS = {
+    "symptom", "symptoms", "symptons", "symtoms", "sign", "signs", "early signs", "early sign", "indication", "indications",
+    "treatment", "treatments", "treament", "tablets", "tablet", "tabletes", "medication", "medications", "meds", "therapy", "cure", "cures"
+}
 
 
 def _filter_subphrases(terms_list):
-    generic = {"symptom", "symptoms", "treatment", "treatments", "sign", "signs"}
-    filtered = [t for t in terms_list if t not in generic or len(terms_list) == 1]
+    # Filter out pure meta-intent words so they don't clutter clinical entity displays
+    filtered = [t for t in terms_list if t not in META_INTENT_WORDS]
     final_terms = []
     for term in filtered:
         if not any(other != term and term in other for other in filtered):
             final_terms.append(term)
-    return list(dict.fromkeys(final_terms if final_terms else terms_list))
+    return list(dict.fromkeys(final_terms))
 
 
 def extract_entities_live(text: str) -> dict:
@@ -81,7 +91,7 @@ def extract_entities_live(text: str) -> dict:
 
 def get_medical_retriever():
     retriever = MedicalRetriever()
-    if not retriever.rag.metadata or len(retriever.rag.metadata) < 3:
+    if not retriever.rag.metadata or len(retriever.rag.metadata) < 50:
         retriever.build_from_medquad_subfolder()
     return retriever
 
@@ -106,20 +116,32 @@ with tab1:
             # Filter out zero-similarity noise matches (< 0.05 match score)
             valid_results = [r for r in raw_results if r.get('similarity', 0.0) > 0.05]
 
-            # 3. Entity Recognition
-            if valid_results:
-                combined_context = user_query + " " + " ".join([r['answer'] for r in valid_results])
-                entities = extract_entities_live(combined_context)
-            else:
-                entities = extract_entities_live(user_query)
+            # 3. Entity Recognition (Extracted from User Query)
+            entities = extract_entities_live(user_query)
+
+            lowered_q = user_query.lower()
+            has_symptom_inquiry = any(kw in lowered_q for kw in ["symptom", "symptoms", "symptons", "symtoms", "sign", "signs"])
+            has_treatment_inquiry = any(kw in lowered_q for kw in ["treatment", "treatments", "treament", "tablets", "tablet", "tabletes", "medicine", "medication"])
 
             col1, col2, col3 = st.columns(3)
             with col1:
-                st.markdown(f"**Diseases**: {', '.join(entities['diseases']) if entities['diseases'] else 'None detected'}")
+                st.markdown(f"**Diseases Recognized**: {', '.join(entities['diseases']) if entities['diseases'] else 'None detected'}")
             with col2:
-                st.markdown(f"**Symptoms**: {', '.join(entities['symptoms']) if entities['symptoms'] else 'None detected'}")
+                if entities['symptoms']:
+                    symptom_str = ', '.join(entities['symptoms'])
+                elif has_symptom_inquiry:
+                    symptom_str = "Inquiring for symptoms"
+                else:
+                    symptom_str = "None detected"
+                st.markdown(f"**Symptoms Recognized**: {symptom_str}")
             with col3:
-                st.markdown(f"**Treatments**: {', '.join(entities['treatments']) if entities['treatments'] else 'None detected'}")
+                if entities['treatments']:
+                    treatment_str = ', '.join(entities['treatments'])
+                elif has_treatment_inquiry:
+                    treatment_str = "Inquiring for treatment"
+                else:
+                    treatment_str = "None detected"
+                st.markdown(f"**Treatments Recognized**: {treatment_str}")
 
             st.divider()
 

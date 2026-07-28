@@ -119,10 +119,10 @@ class MedicalRetriever:
             print(f"[Error] Failed to load index from {self.index_path}: {e}")
             raise e
 
-    def retrieve(self, query, threshold=0.15, top_k=3):
+    def retrieve(self, query, threshold=0.00, top_k=3):
         """
-        Retrieves top_k relevant Q&A pairs matching the query.
-        Returns a list of dictionaries with matching QA pairs and their cosine similarities.
+        Retrieves top_k relevant Q&A pairs matching the query with Intent & Focus re-ranking.
+        Returns a list of dictionaries with matching QA pairs and their similarity scores.
         """
         if self.vectorizer is None or self.tfidf_matrix is None:
             return []
@@ -133,25 +133,42 @@ class MedicalRetriever:
         # Compute cosine similarities between query and all indexed questions
         similarities = cosine_similarity(query_vec, self.tfidf_matrix).flatten()
         
-        # Rank similarity indices in descending order
-        ranked_indices = similarities.argsort()[::-1]
-        
+        lowered_q = query.lower()
+
+        # Intent detection
+        treatment_keywords = {"tablets", "tablet", "tabletes", "medicine", "medicines", "medication", "medications", "pill", "pills", "drug", "drugs", "cure", "treatment", "treatments", "treat", "dose", "suggest"}
+        is_treatment_intent = any(kw in lowered_q for kw in treatment_keywords)
+
+        has_cancer_in_query = any(c in lowered_q for c in ["cancer", "tumor", "tumour", "leukemia", "carcinoma", "oncology"])
+
         results = []
-        for idx in ranked_indices:
-            score = float(similarities[idx])
-            
-            # Stop if score falls below similarity cutoff threshold
-            if score < threshold:
-                break
-                
+        for idx, raw_score in enumerate(similarities):
+            score = float(raw_score)
             match = self.metadata[idx].copy()
-            match["similarity_score"] = score
+            focus = str(match.get("focus", "General")).lower()
+            qtype = str(match.get("question_type", "general")).lower()
+            cand_q = str(match.get("question", "")).lower()
+
+            adjusted_score = score
+
+            # Heavy penalty if focus is Cancer but query is NOT about Cancer
+            if "cancer" in focus and not has_cancer_in_query:
+                adjusted_score *= 0.15
+
+            # Boost if user requested treatment/tablets and candidate is treatment-focused
+            if is_treatment_intent:
+                if qtype == "treatment" or "treatment" in cand_q or "tablet" in cand_q or "medication" in cand_q:
+                    adjusted_score += 0.30
+                elif qtype == "symptoms":
+                    adjusted_score -= 0.15
+
+            match["similarity_score"] = min(max(adjusted_score, 0.0), 0.99)
+            match["similarity"] = match["similarity_score"]
             results.append(match)
-            
-            if len(results) >= top_k:
-                break
-                
-        return results
+
+        # Sort results by adjusted score descending
+        results = sorted(results, key=lambda x: x["similarity_score"], reverse=True)
+        return results[:top_k]
 
 
 if __name__ == "__main__":

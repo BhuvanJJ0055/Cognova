@@ -8,3 +8,8 @@ timestamp,user_message,detected_mood,compound_score,detected_intent,bot_reply
 2026-07-26T20:32:50,u idiot,upset,-0.511,service_complaint,I sincerely apologize for the inconvenience and frustration caused! 😔 Your satisfaction is our top priority. Please share your account or error details so our senior technical team can resolve this right away.
 2026-07-26T21:21:26,What is the emergency medical escalation time for Cognova?,calm,0.0,general_query,Thank you for reaching out to customer support. ℹ️ How can I assist you with your request today?
 2026-07-28T20:51:20,My oreder is brokend and I want to replace,upset,-0.35,service_complaint,I sincerely apologize for the inconvenience and frustration caused! 😔 Your satisfaction is our top priority. Please share your account or error details so our senior technical team can resolve this right away.
+2026-07-28T21:02:32,hii,calm,0.0,greeting_salutation,Hello! Welcome to Cognova Assistant Platform. 👋 How can I help you today?
+2026-07-28T21:02:48,I am Bhuvan,calm,0.0,general_query,Thank you for reaching out to customer support. ℹ️ How can I assist you with your request today?
+2026-07-28T21:03:03,This is Item Is so baqd,calm,0.0,greeting_salutation,Hello! Welcome to Cognova Assistant Platform. 👋 How can I help you today?
+2026-07-28T21:03:19,This item is so bad,upset,-0.67,greeting_salutation,"Hello! I can tell you're frustrated, and I am here to make things right. 🤝 Please tell me what issue you are facing so I can help immediately."
+2026-07-28T21:03:37,are you mad,upset,-0.494,service_complaint,I sincerely apologize for the inconvenience and frustration caused! 😔 Your satisfaction is our top priority. Please share your account or error details so our senior technical team can resolve this right away.
