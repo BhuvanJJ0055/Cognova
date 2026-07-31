@@ -29,6 +29,13 @@ data/arxiv_index/
 .idea/
 *.swp
 
+# Temporary outputs & logs
+reports/*.txt
+reports/_ocr_tmp.png
+*.log
+*.tmp
+.pytest_cache/
+
 # OS generated files
 .DS_Store
 Thumbs.db
