@@ -140,19 +140,36 @@ def test_task5_multimodal():
 
 def test_task6_multilingual():
     print("\n" + "="*60)
-    print("TESTING TASK 6: Multilingual Assistant")
+    print("TESTING TASK 6: Multilingual Assistant (All Possibilities)")
     print("="*60)
 
     assistant = MultilingualAssistant()
     assistant.initialize_retrievers()
 
+    # 1. Code-switching test
     hindi_query = "Madhumeha ke symptoms kya hain?"
     detection = assistant.detect_and_translate(hindi_query)
     print(f" -> Input Query: '{hindi_query}'")
     print(f" -> Primary Language: {detection['primary_language'].upper()} | Is Mixed/Code-switched: {detection['is_mixed']}")
     print(f" -> Pivot English Query: '{detection['translated_query']}'")
 
-    print("\n✅ TASK 6 PASSED: Multilingual detection & pivot translation verified.")
+    # 2. Multi-turn cross-lingual context preservation test
+    chat_history = [{"user_input": "What is Diabetes?", "response": "Diabetes is a metabolic disease."}]
+    followup_hi = assistant.detect_and_translate("इसके क्या लक्षण हैं?", chat_history=chat_history)
+    print(f" -> Cross-Lingual Context Resolution: '{followup_hi['translated_query']}'")
+    assert "Diabetes" in followup_hi["translated_query"], "Failed to resolve pronoun 'इसके' across language switch!"
+
+    # 3. Ambiguity test
+    ambiguous_res = assistant.detect_and_translate("ilaaj?")
+    print(f" -> Ambiguity Detection ('ilaaj?'): Is Ambiguous = {ambiguous_res.get('is_ambiguous')}")
+
+    # 4. Factual consistency test
+    context = [{"title": "Diabetes Info", "text": "Diabetes causes increased thirst and frequent urination."}]
+    score, aligned, _ = assistant.check_factual_consistency("Diabetes causes frequent urination and increased thirst.", context)
+    print(f" -> Factual Overlap Score: {score * 100:.1f}% (Aligned: {aligned[:2]})")
+    assert score >= 0.70, "Factual consistency check failed!"
+
+    print("\n✅ TASK 6 PASSED: Multilingual detection, code-switching, context retention & factual consistency verified.")
 
 
 if __name__ == "__main__":

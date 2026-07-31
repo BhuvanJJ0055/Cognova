@@ -17,9 +17,10 @@ from io import BytesIO
 from PIL import Image
 
 # Setup path
-sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
-
-from Task4_Multimodal_Assistant.multimodal_agent import MultimodalAgent
+try:
+    from Multimodal_Assistant.multimodal_agent import MultimodalAgent
+except ImportError:
+    from src.modules.multimodal import MultimodalAgent
 
 class TestMultimodalAgent(unittest.TestCase):
 

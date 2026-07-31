@@ -104,15 +104,15 @@ class MultimodalAgent:
             return {"error": f"Failed to parse image properties: {e}"}
 
     def query_gemini_multimodal(self, image_file, prompt: str, api_key: str) -> str:
-        """Sends text + image payload directly to Gemini 1.5 REST API."""
-        url = "https://generativelanguage.googleapis.com/v1beta/models/gemini-flash-latest:generateContent"
-        
+        """Sends text + image payload to Gemini Vision API with model candidates fallback."""
+        if not api_key or api_key.startswith("AQ."):
+            return ""
+
         try:
             image_file.seek(0)
             img_bytes = image_file.read()
             img_b64 = base64.b64encode(img_bytes).decode("utf-8")
             
-            # Auto-detect mime type
             filename = getattr(image_file, 'name', 'image.png').lower()
             mime_type = "image/png"
             if filename.endswith(".jpg") or filename.endswith(".jpeg"):
@@ -120,37 +120,35 @@ class MultimodalAgent:
             elif filename.endswith(".webp"):
                 mime_type = "image/webp"
 
+            model_candidates = ["gemini-1.5-flash", "gemini-2.0-flash", "gemini-2.5-flash", "gemini-1.5-pro"]
+            
+            headers = {"Content-Type": "application/json", "x-goog-api-key": api_key}
             payload = {
                 "contents": [{
                     "parts": [
                         {"text": prompt},
-                        {
-                            "inlineData": {
-                                "mimeType": mime_type,
-                                "data": img_b64
-                            }
-                        }
+                        {"inlineData": {"mimeType": mime_type, "data": img_b64}}
                     ]
                 }]
             }
 
-            headers = {
-                "Content-Type": "application/json",
-                "x-goog-api-key": api_key
-            }
-            response = requests.post(url, json=payload, headers=headers, timeout=20)
-            
-            if response.status_code == 200:
-                data = response.json()
-                candidates = data.get("candidates", [])
-                if candidates:
-                    return candidates[0].get("content", {}).get("parts", [{}])[0].get("text", "").strip()
-            return f"Gemini API Error {response.status_code}: {response.text}"
-        except Exception as e:
-            clean_error = str(e)
-            if api_key:
-                clean_error = clean_error.replace(api_key, "REDACTED_API_KEY")
-            return f"Failed to contact Gemini Multimodal API: {clean_error}"
+            for model_name in model_candidates:
+                url = f"https://generativelanguage.googleapis.com/v1beta/models/{model_name}:generateContent"
+                try:
+                    response = requests.post(url, json=payload, headers=headers, timeout=12)
+                    if response.status_code == 200:
+                        data = response.json()
+                        candidates = data.get("candidates", [])
+                        if candidates:
+                            ans = candidates[0].get("content", {}).get("parts", [{}])[0].get("text", "").strip()
+                            if ans:
+                                return ans
+                except Exception:
+                    continue
+
+            return ""
+        except Exception:
+            return ""
 
     def run_local_visual_fallback(self, filename: str, image_properties: dict, prompt: str) -> dict:
         """

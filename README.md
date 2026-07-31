@@ -122,5 +122,5 @@ python scripts/build_general_index.py
    - Gemini 1.5 Flash vision processing.
 
 4. **Multilingual Chat (`pages/4_Multilingual_Chat.py`)**:
-   - Supports English, Hindi, Kannada, and code-switched text (Hinglish/Kanglish).
-   - Dynamic translation & cross-lingual RAG retrieval.
+   - Supports English, Hindi, Kannada, Spanish, French, German, and code-switched text (Hinglish/Kanglish/Spanglish/Franglish/Denglish).
+   - Dynamic pivot translation, multi-turn cross-lingual context retention (pronoun resolution), ambiguity detection, and factual consistency overlap scoring.
